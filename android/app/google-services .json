@@ -1,0 +1,70 @@
+{
+  "project_info": {
+    "project_number": "161668906055",
+    "project_id": "kmrgroup-a7e50",
+    "storage_bucket": "kmrgroup-a7e50.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:161668906055:android:424c69f727843dc3da8562",
+        "android_client_info": {
+          "package_name": "com.kmr.agsolutions"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "161668906055-l2pk0rr48g7r1p71r1j2plvopdfplmi4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kmr.agsolutions",
+            "certificate_hash": "80bdc539bb062c2d87864f82d5f4d9b0113c5711"
+          }
+        },
+        {
+          "client_id": "161668906055-r3vgrtbuuegja3atuvoi2gkdf35qqm7q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kmr.agsolutions",
+            "certificate_hash": "61e19ed390293659f8d91561b50eb448293212dc"
+          }
+        },
+        {
+          "client_id": "161668906055-sa4p2h3jl2sv3ug1c20di5cdm6mrooqc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kmr.agsolutions",
+            "certificate_hash": "e1b0e23405231b4af589c8e2729800ac14feb288"
+          }
+        },
+        {
+          "client_id": "161668906055-u4jvo3oog0861v50hr34mebhd93bbi3t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6mKY_fVaKv38fiAx7Kry-RIkirDTgk3A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "161668906055-u4jvo3oog0861v50hr34mebhd93bbi3t.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "161668906055-ltj23p78fi78805n91jnilrrg32v9h0d.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.kmr.agsolutions"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
