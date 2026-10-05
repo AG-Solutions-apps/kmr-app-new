@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/news_model.dart';
 import '../core/widgets/app_snackbar.dart';
+import '../core/utils/date_formatter.dart';
 
 /// Screen displaying full details for a selected Commodity News item,
 /// including Hero Image, Date Badge, Rich Heading & Description,
@@ -163,13 +164,19 @@ class NewsDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Hero Image Container (Square aspect ratio with BoxFit.cover)
-            AspectRatio(
-              aspectRatio: 1.0,
+            // Dynamic Adaptive Hero Image Container (Adapts naturally to Landscape or Portrait images)
+            GestureDetector(
+              onTap: () => _handleOpenAttachment(context, fullImgUrl),
               child: Container(
                 width: double.infinity,
+                constraints: const BoxConstraints(
+                  minHeight: 180,
+                  maxHeight: 480,
+                ),
                 decoration: BoxDecoration(
+                  color: const Color(0xFFEEFAF2),
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFDDEDE4), width: 1),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.08),
@@ -182,8 +189,19 @@ class NewsDetailScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   child: Image.network(
                     fullImgUrl,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        height: 220,
+                        color: const Color(0xFFDCF2E5),
+                        child: const Center(
+                          child: CircularProgressIndicator(color: Color(0xFF1B7A44)),
+                        ),
+                      );
+                    },
                     errorBuilder: (context, error, stackTrace) => Container(
+                      height: 200,
                       color: const Color(0xFFDCF2E5),
                       child: const Center(
                         child: Icon(
@@ -210,7 +228,7 @@ class NewsDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  newsItem.newsCreatedDate,
+                  AppDateFormatter.format(newsItem.newsCreatedDate),
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,

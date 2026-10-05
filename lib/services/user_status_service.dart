@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'auth_service.dart';
 import 'session_service.dart';
 import '../screens/login_screen.dart';
+import '../core/utils/date_formatter.dart';
 
 /// Class representing current user account status and subscription validity state.
 class UserStatusData {
@@ -256,8 +257,7 @@ class UserStatusService {
       final int daysRemaining = expDate.difference(today).inDays;
       final bool isExpired = daysRemaining < 0;
 
-      final String formattedStr =
-          "${expDate.year}-${expDate.month.toString().padLeft(2, '0')}-${expDate.day.toString().padLeft(2, '0')}";
+      final String formattedStr = AppDateFormatter.format(cleanStr);
 
       return _ParsedValidity(
         dateString: formattedStr,

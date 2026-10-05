@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:in_app_update/in_app_update.dart';
 import '../models/category_model.dart';
 import '../models/slider_model.dart';
 import '../services/api_service.dart';
@@ -217,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: _buildSubscriptionCard(statusData),
                     ),
                   )
-                : null,
+                : const _BottomSolidColorBar(),
           );
         },
       ),
@@ -809,6 +812,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                     _drawerItem(
+                      icon: Icons.refresh_rounded,
+                      title: 'Refresh App Cache',
+                      onTap: () => _handleClearCache(context),
+                    ),
+                    _drawerItem(
                       icon: Icons.logout_rounded,
                       title: 'Logout',
                       isLogout: true,
@@ -821,23 +829,33 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // FOOTER VERSION
-              const Padding(
-                padding: EdgeInsets.only(bottom: 18, top: 8),
-                child: Text(
-                  'Version 3.0.0',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0C3A20),
-                  ),
-                ),
-              ),
+              // FOOTER DYNAMIC VERSION & UPDATE CHECK
+              const _DrawerVersionFooter(),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _handleClearCache(BuildContext context) async {
+    Navigator.pop(context);
+
+    // Clear Flutter's memory image cache
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
+
+    // Reload all home categories, sliders and status
+    _loadData();
+    UserStatusService.instance.checkStatusNow();
+
+    if (context.mounted) {
+      AppSnackBar.showSuccess(
+        context,
+        title: 'Cache Cleared',
+        message: 'App cache cleared & fresh data loaded.',
+      );
+    }
   }
 
   Future<void> _handleLogout(BuildContext context) async {
@@ -1260,3 +1278,134 @@ class _HomeBannerSliderState extends State<_HomeBannerSlider> {
     );
   }
 }
+
+// ============================================================
+// BOTTOM SOLID COLOR BAR (SHOWN WHEN VALIDITY >= 7 DAYS)
+// ============================================================
+class _BottomSolidColorBar extends StatelessWidget {
+  const _BottomSolidColorBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 50,
+      width: double.infinity,
+      color: const Color(0xFF0A4B26),
+    );
+  }
+}
+
+// ============================================================
+// DYNAMIC DRAWER VERSION & PLAY STORE UPDATE FOOTER
+// ============================================================
+class _DrawerVersionFooter extends StatefulWidget {
+  const _DrawerVersionFooter();
+
+  @override
+  State<_DrawerVersionFooter> createState() => _DrawerVersionFooterState();
+}
+
+class _DrawerVersionFooterState extends State<_DrawerVersionFooter> {
+  String _versionText = 'Version ...';
+  bool _isUpdateAvailable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchVersionAndCheckUpdate();
+  }
+
+  Future<void> _fetchVersionAndCheckUpdate() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      final versionStr = 'Version ${packageInfo.version}';
+      
+      bool updateAvailable = false;
+      if (Platform.isAndroid) {
+        try {
+          final updateInfo = await InAppUpdate.checkForUpdate();
+          updateAvailable = (updateInfo.updateAvailability == UpdateAvailability.updateAvailable);
+        } catch (e) {
+          debugPrint('[DrawerVersionFooter] Play Store check: $e');
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _versionText = versionStr;
+          _isUpdateAvailable = updateAvailable;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _versionText = 'Version 4.0.0';
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18, top: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Dynamic Installed App Version
+          Text(
+            _versionText,
+            style: const TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0C3A20),
+            ),
+          ),
+
+          // Show Update Button ONLY if an update is available on Play Store
+          if (_isUpdateAvailable) ...[
+            const SizedBox(height: 8),
+            InkWell(
+              onTap: () => AppUpdateService.checkForUpdate(context, forceCheck: true),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0A4B26), Color(0xFF1B7A44)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x330A4B26),
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.system_update_rounded, size: 15, color: Colors.white),
+                    SizedBox(width: 6),
+                    Text(
+                      'Update Available',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+

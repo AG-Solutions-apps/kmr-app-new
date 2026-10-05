@@ -504,192 +504,229 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                           const SizedBox(height: 10),
 
-                          // EDIT FORM CONTAINER
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(22),
-                              border: Border.all(color: const Color(0xFFDDEDE4), width: 1.1),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.04),
-                                  blurRadius: 14,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Full Name (PERMANENTLY LOCKED)
-                                TextFormField(
-                                  controller: _nameController,
-                                  enabled: false,
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF4A5568),
+                          // PROFILE DISPLAY / EDIT FORM CONTAINER
+                          if (!_isEditing)
+                            Container(
+                              padding: const EdgeInsets.all(18),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(color: const Color(0xFFDDEDE4), width: 1.1),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.04),
+                                    blurRadius: 14,
+                                    offset: const Offset(0, 4),
                                   ),
-                                  decoration: InputDecoration(
-                                    labelText: 'Full Name (Locked)',
-                                    prefixIcon: const Icon(Icons.person_outline_rounded, color: Colors.grey),
-                                    suffixIcon: const Tooltip(
-                                      message: 'Full Name cannot be edited',
-                                      child: Icon(Icons.lock_rounded, size: 18, color: Colors.grey),
-                                    ),
-                                    disabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                      borderSide: BorderSide(color: Colors.grey.shade300),
-                                    ),
-                                    fillColor: const Color(0xFFF8FAFC),
-                                    filled: true,
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildProfileInfoRow(
+                                    icon: Icons.person_outline_rounded,
+                                    label: 'Full Name',
+                                    value: _nameController.text.isNotEmpty ? _nameController.text : 'KMR Live User',
+                                    isLocked: true,
                                   ),
-                                ),
-                                const SizedBox(height: 16),
+                                  _buildProfileInfoRow(
+                                    icon: Icons.phone_android_rounded,
+                                    label: 'Mobile Number',
+                                    value: _mobileController.text.isNotEmpty ? '+91 ${_mobileController.text}' : 'Not provided',
+                                    isLocked: true,
+                                  ),
+                                  _buildProfileInfoRow(
+                                    icon: Icons.email_outlined,
+                                    label: 'Email Address',
+                                    value: _emailController.text,
+                                  ),
+                                  _buildProfileInfoRow(
+                                    icon: Icons.location_city_rounded,
+                                    label: 'City',
+                                    value: _cityController.text,
+                                  ),
+                                  _buildProfileInfoRow(
+                                    icon: Icons.home_work_outlined,
+                                    label: 'Address',
+                                    value: _addressController.text,
+                                    isLast: true,
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(color: const Color(0xFF1B7A44), width: 1.3),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 14,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Full Name (PERMANENTLY LOCKED)
+                                  TextFormField(
+                                    controller: _nameController,
+                                    enabled: false,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF4A5568),
+                                    ),
+                                    decoration: InputDecoration(
+                                      labelText: 'Full Name (Locked)',
+                                      prefixIcon: const Icon(Icons.person_outline_rounded, color: Colors.grey),
+                                      suffixIcon: const Tooltip(
+                                        message: 'Full Name cannot be edited',
+                                        child: Icon(Icons.lock_rounded, size: 18, color: Colors.grey),
+                                      ),
+                                      disabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        borderSide: BorderSide(color: Colors.grey.shade300),
+                                      ),
+                                      fillColor: const Color(0xFFF8FAFC),
+                                      filled: true,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
 
-                                // Mobile Number (PERMANENTLY LOCKED)
-                                TextFormField(
-                                  controller: _mobileController,
-                                  enabled: false,
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF4A5568),
-                                  ),
-                                  decoration: InputDecoration(
-                                    labelText: 'Mobile Number (Locked)',
-                                    prefixIcon: const Icon(Icons.phone_android_rounded, color: Colors.grey),
-                                    suffixIcon: const Tooltip(
-                                      message: 'Mobile number cannot be edited',
-                                      child: Icon(Icons.lock_rounded, size: 18, color: Colors.grey),
+                                  // Mobile Number (PERMANENTLY LOCKED)
+                                  TextFormField(
+                                    controller: _mobileController,
+                                    enabled: false,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF4A5568),
                                     ),
-                                    disabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                      borderSide: BorderSide(color: Colors.grey.shade300),
+                                    decoration: InputDecoration(
+                                      labelText: 'Mobile Number (Locked)',
+                                      prefixIcon: const Icon(Icons.phone_android_rounded, color: Colors.grey),
+                                      suffixIcon: const Tooltip(
+                                        message: 'Mobile number cannot be edited',
+                                        child: Icon(Icons.lock_rounded, size: 18, color: Colors.grey),
+                                      ),
+                                      disabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        borderSide: BorderSide(color: Colors.grey.shade300),
+                                      ),
+                                      fillColor: const Color(0xFFF8FAFC),
+                                      filled: true,
                                     ),
-                                    fillColor: const Color(0xFFF8FAFC),
-                                    filled: true,
                                   ),
-                                ),
-                                const SizedBox(height: 16),
+                                  const SizedBox(height: 16),
 
-                                // Email Input (EDITABLE ONLY WHEN EDIT CLICKED)
-                                TextFormField(
-                                  controller: _emailController,
-                                  enabled: _isEditing,
-                                  keyboardType: TextInputType.emailAddress,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: _isEditing ? const Color(0xFF0C3A20) : const Color(0xFF4A5568),
+                                  // Email Input (EDITABLE ONLY WHEN EDIT CLICKED)
+                                  TextFormField(
+                                    controller: _emailController,
+                                    enabled: true,
+                                    keyboardType: TextInputType.emailAddress,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF0C3A20),
+                                    ),
+                                    validator: (v) {
+                                      if (v == null || v.trim().isEmpty) {
+                                        return 'Please enter email address';
+                                      }
+                                      if (!v.contains('@') || !v.contains('.')) {
+                                        return 'Please enter a valid email address';
+                                      }
+                                      return null;
+                                    },
+                                    decoration: InputDecoration(
+                                      labelText: 'Email Address (Editable)',
+                                      prefixIcon: const Icon(
+                                        Icons.email_outlined,
+                                        color: Color(0xFF1B7A44),
+                                      ),
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 1.2),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 2),
+                                      ),
+                                      fillColor: const Color(0xFFFAFDFA),
+                                      filled: true,
+                                    ),
                                   ),
-                                  validator: (v) {
-                                    if (v == null || v.trim().isEmpty) {
-                                      return 'Please enter email address';
-                                    }
-                                    if (!v.contains('@') || !v.contains('.')) {
-                                      return 'Please enter a valid email address';
-                                    }
-                                    return null;
-                                  },
-                                  decoration: InputDecoration(
-                                    labelText: _isEditing ? 'Email Address (Editable)' : 'Email Address',
-                                    prefixIcon: Icon(
-                                      Icons.email_outlined,
-                                      color: _isEditing ? const Color(0xFF1B7A44) : Colors.grey,
-                                    ),
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                      borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 1.2),
-                                    ),
-                                    disabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                      borderSide: BorderSide(color: Colors.grey.shade300),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                      borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 2),
-                                    ),
-                                    fillColor: _isEditing ? const Color(0xFFFAFDFA) : const Color(0xFFF8FAFC),
-                                    filled: true,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
+                                  const SizedBox(height: 16),
 
-                                // City Input (EDITABLE WHEN EDIT CLICKED)
-                                TextFormField(
-                                  controller: _cityController,
-                                  enabled: _isEditing,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: _isEditing ? const Color(0xFF0C3A20) : const Color(0xFF4A5568),
+                                  // City Input (EDITABLE WHEN EDIT CLICKED)
+                                  TextFormField(
+                                    controller: _cityController,
+                                    enabled: true,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF0C3A20),
+                                    ),
+                                    decoration: InputDecoration(
+                                      labelText: 'City (Editable)',
+                                      prefixIcon: const Icon(
+                                        Icons.location_city_rounded,
+                                        color: Color(0xFF1B7A44),
+                                      ),
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 1.2),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 2),
+                                      ),
+                                      fillColor: const Color(0xFFFAFDFA),
+                                      filled: true,
+                                    ),
                                   ),
-                                  decoration: InputDecoration(
-                                    labelText: _isEditing ? 'City (Editable)' : 'City',
-                                    prefixIcon: Icon(
-                                      Icons.location_city_rounded,
-                                      color: _isEditing ? const Color(0xFF1B7A44) : Colors.grey,
-                                    ),
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                      borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 1.2),
-                                    ),
-                                    disabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                      borderSide: BorderSide(color: Colors.grey.shade300),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                      borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 2),
-                                    ),
-                                    fillColor: _isEditing ? const Color(0xFFFAFDFA) : const Color(0xFFF8FAFC),
-                                    filled: true,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
+                                  const SizedBox(height: 16),
 
-                                // Address Input (EDITABLE WHEN EDIT CLICKED)
-                                TextFormField(
-                                  controller: _addressController,
-                                  enabled: _isEditing,
-                                  maxLines: 2,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: _isEditing ? const Color(0xFF0C3A20) : const Color(0xFF4A5568),
+                                  // Address Input (EDITABLE WHEN EDIT CLICKED)
+                                  TextFormField(
+                                    controller: _addressController,
+                                    enabled: true,
+                                    maxLines: 2,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF0C3A20),
+                                    ),
+                                    decoration: InputDecoration(
+                                      labelText: 'Address (Editable)',
+                                      prefixIcon: const Icon(
+                                        Icons.home_work_outlined,
+                                        color: Color(0xFF1B7A44),
+                                      ),
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 1.2),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 2),
+                                      ),
+                                      fillColor: const Color(0xFFFAFDFA),
+                                      filled: true,
+                                    ),
                                   ),
-                                  decoration: InputDecoration(
-                                    labelText: _isEditing ? 'Address (Editable)' : 'Address',
-                                    prefixIcon: Icon(
-                                      Icons.home_work_outlined,
-                                      color: _isEditing ? const Color(0xFF1B7A44) : Colors.grey,
-                                    ),
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                      borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 1.2),
-                                    ),
-                                    disabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                      borderSide: BorderSide(color: Colors.grey.shade300),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                      borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 2),
-                                    ),
-                                    fillColor: _isEditing ? const Color(0xFFFAFDFA) : const Color(0xFFF8FAFC),
-                                    filled: true,
-                                  ),
-                                ),
 
-                                const SizedBox(height: 20),
+                                  const SizedBox(height: 20),
 
-                                // ACTION BUTTONS (UPDATE & CANCEL)
-                                if (_isEditing)
+                                  // ACTION BUTTONS (UPDATE & CANCEL)
                                   Row(
                                     children: [
                                       Expanded(
@@ -759,35 +796,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ),
                                       ),
                                     ],
-                                  )
-                                else
-                                  Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF0F7F2),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Row(
-                                      children: [
-                                        Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF1B7A44)),
-                                        SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            'Mobile & Name are locked. Click "Edit Profile" above to update email, city, or address.',
-                                            style: TextStyle(
-                                              fontSize: 11.5,
-                                              fontWeight: FontWeight.w600,
-                                              color: Color(0xFF1B7A44),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
                                   ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
 
                           const SizedBox(height: 28),
 
@@ -807,7 +819,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     Icon(Icons.delete_forever_rounded, color: Color(0xFFC81E1E), size: 22),
                                     SizedBox(width: 8),
                                     Text(
-                                      'Danger Zone',
+                                      'Delete Account',
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
@@ -866,6 +878,81 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ),
+      ),
+    );
+  }
+
+  Widget _buildProfileInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    bool isLocked = false,
+    bool isLast = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      margin: EdgeInsets.only(bottom: isLast ? 0 : 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAFDFA),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2EFE7)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: const BoxDecoration(
+              color: Color(0xFFEEFAF2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: const Color(0xFF1B7A44), size: 20),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value.isNotEmpty ? value : 'Not specified',
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0C3A20),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (isLocked)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.lock_rounded, size: 12, color: Colors.grey),
+                  SizedBox(width: 4),
+                  Text(
+                    'Locked',
+                    style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
