@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/category_model.dart';
@@ -8,6 +9,7 @@ import '../models/news_model.dart';
 import '../services/api_service.dart';
 import '../services/session_service.dart';
 import '../core/widgets/app_snackbar.dart';
+import '../core/utils/date_formatter.dart';
 import 'news_detail_screen.dart';
 
 /// Screen displaying Category Commodity Rates supporting both 'Live' and 'Rates' modes,
@@ -393,36 +395,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   }
 
   Widget _buildCategoryBannerSlider() {
-    return FutureBuilder<SliderResponse>(
-      future: _categorySlidersFuture,
-      builder: (context, snapshot) {
-        if (snapshot.hasData && snapshot.data!.data.isNotEmpty) {
-          final sliders = snapshot.data!.data;
-          final sliderRes = snapshot.data!;
-
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(18),
-            child: SizedBox(
-              height: 165,
-              child: PageView.builder(
-                itemCount: sliders.length,
-                itemBuilder: (context, index) {
-                  final s = sliders[index];
-                  final imgUrl = sliderRes.getFullImageUrl(s);
-                  return Image.network(
-                    imgUrl,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
-                  );
-                },
-              ),
-            ),
-          );
-        }
-        return const SizedBox.shrink();
-      },
-    );
+    return _CategoryBannerSlider(slidersFuture: _categorySlidersFuture);
   }
 
   Widget _buildSubCategoryChips(List<SubCategoryItem> subs) {
@@ -622,7 +595,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                   const Icon(Icons.calendar_today_rounded, size: 13, color: Color(0xFF1B7A44)),
                   const SizedBox(width: 4),
                   Text(
-                    item.vendorProductCreatedDate,
+                    AppDateFormatter.format(item.vendorProductCreatedDate),
                     style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF1B7A44)),
                   ),
                   const SizedBox(width: 10),
@@ -763,7 +736,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                         const Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFF1B7A44)),
                         const SizedBox(width: 4),
                         Text(
-                          item.vendorProductCreatedDate,
+                          AppDateFormatter.format(item.vendorProductCreatedDate),
                           style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF4A5568)),
                         ),
                         const SizedBox(width: 8),
@@ -1014,7 +987,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                 const Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFF1B7A44)),
                                 const SizedBox(width: 4),
                                 Text(
-                                  item.vendorProductCreatedDate,
+                                  AppDateFormatter.format(item.vendorProductCreatedDate),
                                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF4A5568)),
                                 ),
                                 const SizedBox(width: 6),
@@ -1710,7 +1683,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
               const Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFF1B7A44)),
               const SizedBox(width: 4),
               Text(
-                latestItem.vendorSpotCreatedDate,
+                AppDateFormatter.format(latestItem.vendorSpotCreatedDate),
                 style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF4A5568)),
               ),
               const SizedBox(width: 8),
@@ -1876,7 +1849,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                 const Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFF1B7A44)),
                                 const SizedBox(width: 4),
                                 Text(
-                                  item.vendorSpotCreatedDate,
+                                  AppDateFormatter.format(item.vendorSpotCreatedDate),
                                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF4A5568)),
                                 ),
                                 const SizedBox(width: 8),
@@ -2070,7 +2043,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                         const Icon(Icons.calendar_today_rounded, size: 13, color: Color(0xFF1B7A44)),
                         const SizedBox(width: 5),
                         Text(
-                          item.newsCreatedDate,
+                          AppDateFormatter.format(item.newsCreatedDate),
                           style: const TextStyle(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w600,
@@ -2206,7 +2179,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
           ElevatedButton.icon(
             onPressed: _loadData,
             icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text('Refresh Rates'),
+            label: const Text('Refresh'),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1B7A44),
               foregroundColor: Colors.white,
@@ -2265,3 +2238,134 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     );
   }
 }
+
+// ============================================================
+// DYNAMIC CATEGORY BANNER CAROUSEL SLIDER (AUTO-SCROLLING)
+// ============================================================
+class _CategoryBannerSlider extends StatefulWidget {
+  final Future<SliderResponse> slidersFuture;
+
+  const _CategoryBannerSlider({required this.slidersFuture});
+
+  @override
+  State<_CategoryBannerSlider> createState() => _CategoryBannerSliderState();
+}
+
+class _CategoryBannerSliderState extends State<_CategoryBannerSlider> {
+  late PageController _pageController;
+  Timer? _autoScrollTimer;
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: 1000);
+  }
+
+  @override
+  void dispose() {
+    _autoScrollTimer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _startAutoScroll(int count) {
+    if (count <= 1 || _autoScrollTimer != null) return;
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (_pageController.hasClients) {
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+    });
+  }
+
+  Future<void> _launchSliderUrl(String? urlStr) async {
+    if (urlStr == null || urlStr.trim().isEmpty) return;
+    try {
+      Uri uri = Uri.parse(urlStr.trim());
+      if (!uri.hasScheme) {
+        uri = Uri.parse('https://${urlStr.trim()}');
+      }
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('Error launching category slider URL $urlStr: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<SliderResponse>(
+      future: widget.slidersFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasData && snapshot.data!.data.isNotEmpty) {
+          final sliders = snapshot.data!.data;
+          final sliderRes = snapshot.data!;
+
+          _startAutoScroll(sliders.length);
+
+          return Column(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: SizedBox(
+                  height: 165,
+                  width: double.infinity,
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: (pageIndex) {
+                      setState(() {
+                        _currentIndex = pageIndex % sliders.length;
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      final item = sliders[index % sliders.length];
+                      final imgUrl = sliderRes.getFullImageUrl(item);
+                      return GestureDetector(
+                        onTap: () => _launchSliderUrl(item.url),
+                        child: Image.network(
+                          imgUrl,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const SizedBox.shrink(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              if (sliders.length > 1) ...[
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    sliders.length,
+                    (dotIndex) => AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: dotIndex == _currentIndex ? 22 : 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: dotIndex == _currentIndex
+                            ? const Color(0xFF1B7A44)
+                            : const Color(0xFFBDD9C8),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          );
+        }
+        return const SizedBox.shrink();
+      },
+    );
+  }
+}
+

@@ -98,14 +98,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           children: [
                             Icon(Icons.campaign_rounded, size: 14, color: Color(0xFF1B7A44)),
                             SizedBox(width: 6),
-                            Text(
-                              'Product Update',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1B7A44),
-                              ),
-                            ),
+                            
                           ],
                         ),
                       ),
@@ -536,18 +529,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               children: [
                                 Icon(Icons.campaign_rounded, size: 13, color: Color(0xFF1B7A44)),
                                 SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    'Product Update',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFF1B7A44),
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
+                                
                               ],
                             ),
                           ),
