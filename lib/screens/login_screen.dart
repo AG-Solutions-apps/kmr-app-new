@@ -23,8 +23,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
 
   // Placeholder URLs (Change demo google.com link to your actual URLs anytime)
-  static const String _termsUrl = 'https://google.com';
-  static const String _privacyUrl = 'https://google.com';
+  static const String _termsUrl = 'https://kmrlive.in/crmapi/termscondition.html';
+  static const String _privacyUrl = 'https://kmrlive.in/crmapi/privacypolicy.html';
 
   Future<void> _launchWebUrl(String urlString) async {
     try {

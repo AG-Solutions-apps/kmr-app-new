@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/notification_model.dart';
 import '../services/api_service.dart';
 import '../services/session_service.dart';
+import '../widgets/app_cached_network_image.dart';
 
 /// Redesigned premium Notification Screen with top-to-bottom gradient header
 /// and reference UI matching notification cards with expand modal functionality.
@@ -71,10 +72,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       width: double.infinity,
                       height: 190,
                       color: const Color(0xFFF0F7F2),
-                      child: Image.network(
-                        displayImgUrl,
+                      child: AppCachedNetworkImage(
+                        imageUrl: displayImgUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, err, stack) => const Center(
+                        errorWidget: const Center(
                           child: Icon(Icons.notifications_active_rounded, color: Color(0xFF1B7A44), size: 48),
                         ),
                       ),
@@ -86,22 +87,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEEFAF2),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFFBDD9C8), width: 0.8),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.campaign_rounded, size: 14, color: Color(0xFF1B7A44)),
-                            SizedBox(width: 6),
-                            
-                          ],
-                        ),
-                      ),
+                     
+                      
                       if (item.date.isNotEmpty)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -438,22 +425,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     child: SizedBox(
                       width: 110,
                       height: 105,
-                      child: Image.network(
-                        displayImgUrl,
+                      child: AppCachedNetworkImage(
+                        imageUrl: displayImgUrl,
                         fit: BoxFit.cover,
-                        loadingBuilder: (context, child, prog) {
-                          if (prog == null) return child;
-                          return Container(
-                            color: const Color(0xFFF0F7F2),
-                            child: const Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Color(0xFF1B7A44),
-                              ),
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, err, stack) => Container(
+                        errorWidget: Container(
                           color: const Color(0xFFEEFAF2),
                           child: const Center(
                             child: Icon(Icons.notifications_active_rounded, color: Color(0xFF1B7A44), size: 36),
@@ -517,23 +492,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     // Top Row: Product Update Tag + Date Tag
                     Row(
                       children: [
-                        Flexible(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEEFAF2),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.campaign_rounded, size: 13, color: Color(0xFF1B7A44)),
-                                SizedBox(width: 4),
-                                
-                              ],
-                            ),
-                          ),
-                        ),
+                        
                         const SizedBox(width: 6),
 
                         if (item.date.isNotEmpty)

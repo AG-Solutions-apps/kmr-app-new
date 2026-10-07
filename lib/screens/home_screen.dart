@@ -16,6 +16,7 @@ import 'notification_screen.dart';
 import 'about_us_screen.dart';
 import 'profile_screen.dart';
 import '../core/widgets/app_snackbar.dart';
+import '../widgets/app_cached_network_image.dart';
 import 'category_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -438,30 +439,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    imgUrl,
+                  child: AppCachedNetworkImage(
+                    imageUrl: imgUrl.isNotEmpty ? imgUrl : noImgUrl,
                     width: double.infinity,
                     height: double.infinity,
                     fit: BoxFit.cover,
-                    loadingBuilder: (context, child, prog) {
-                      if (prog == null) return child;
-                      return const Center(
-                        child: SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Color(0xFF1B7A44),
-                          ),
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, e, st) => Image.network(
-                      noImgUrl,
+                    errorWidget: AppCachedNetworkImage(
+                      imageUrl: noImgUrl,
                       width: double.infinity,
                       height: double.infinity,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, err, stack) => Container(
+                      errorWidget: Container(
                         color: const Color(0xFFF0F7F2),
                         child: const Center(
                           child: Icon(
@@ -1102,23 +1090,10 @@ class _HomeBannerSliderState extends State<_HomeBannerSlider> {
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
-                          Image.network(
-                            fullImgUrl,
+                          AppCachedNetworkImage(
+                            imageUrl: fullImgUrl,
                             fit: BoxFit.cover,
-                            loadingBuilder: (context, child, prog) {
-                              if (prog == null) return child;
-                              return Container(
-                                color: const Color(0xFF156B38),
-                                child: const Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, e, st) =>
-                                _buildStaticFallbackBanner(bannerHeight),
+                            errorWidget: _buildStaticFallbackBanner(bannerHeight),
                           ),
 
                           // Visit Badge if URL is present

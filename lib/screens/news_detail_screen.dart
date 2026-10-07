@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/news_model.dart';
 import '../core/widgets/app_snackbar.dart';
 import '../core/utils/date_formatter.dart';
+import '../widgets/app_cached_network_image.dart';
 
 /// Screen displaying full details for a selected Commodity News item,
 /// including Hero Image, Date Badge, Rich Heading & Description,
@@ -45,10 +46,10 @@ class NewsDetailScreen extends StatelessWidget {
               ),
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: Image.network(
-                  cleanUrl,
+                child: AppCachedNetworkImage(
+                  imageUrl: cleanUrl,
                   fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => Container(
+                  errorWidget: Container(
                     padding: const EdgeInsets.all(24),
                     color: Colors.white,
                     child: const Text('Failed to load image preview'),
@@ -187,20 +188,10 @@ class NewsDetailScreen extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
-                  child: Image.network(
-                    fullImgUrl,
+                  child: AppCachedNetworkImage(
+                    imageUrl: fullImgUrl,
                     fit: BoxFit.contain,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        height: 220,
-                        color: const Color(0xFFDCF2E5),
-                        child: const Center(
-                          child: CircularProgressIndicator(color: Color(0xFF1B7A44)),
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) => Container(
+                    errorWidget: Container(
                       height: 200,
                       color: const Color(0xFFDCF2E5),
                       child: const Center(
