@@ -10,6 +10,7 @@ import '../services/api_service.dart';
 import '../services/session_service.dart';
 import '../core/widgets/app_snackbar.dart';
 import '../core/utils/date_formatter.dart';
+import '../widgets/app_cached_network_image.dart';
 import 'news_detail_screen.dart';
 
 /// Screen displaying Category Commodity Rates supporting both 'Live' and 'Rates' modes,
@@ -347,7 +348,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                 final size = item.vendorProductSize.toLowerCase();
                 final rate = item.vendorProductRate.toLowerCase();
 
-                final rows = _getVendorRateRows(item, rateData!);
+                final rows = _getVendorRateRows(item);
                 final rowMatch = rows.any((r) =>
                     r['brand']!.toLowerCase().contains(q) ||
                     r['qty']!.toLowerCase().contains(q) ||
@@ -496,10 +497,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                 child: SizedBox(
                   width: 85,
                   height: 85,
-                  child: Image.network(
-                    imgUrl,
+                  child: AppCachedNetworkImage(
+                    imageUrl: imgUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
+                    errorWidget: Container(
                       color: const Color(0xFFF0F7F2),
                       child: const Center(
                         child: Icon(Icons.opacity_rounded, color: Color(0xFF1B7A44), size: 36),
@@ -607,26 +608,27 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                   ),
                 ],
               ),
-              InkWell(
-                onTap: () => _showLivePriceHistoryDialog(context, item, liveData),
-                borderRadius: BorderRadius.circular(8),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                  child: Row(
-                    children: [
-                      Text(
-                        'View More',
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF1B7A44),
+              if (item.stocks.isNotEmpty)
+                InkWell(
+                  onTap: () => _showLivePriceHistoryDialog(context, item, liveData),
+                  borderRadius: BorderRadius.circular(8),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    child: Row(
+                      children: [
+                        Text(
+                          'View More',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF1B7A44),
+                          ),
                         ),
-                      ),
-                      Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF1B7A44)),
-                    ],
+                        Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF1B7A44)),
+                      ],
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ],
@@ -634,40 +636,22 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     );
   }
 
-  List<Map<String, String>> _getVendorRateRows(LiveRateItem item, LiveRateResponse rateData) {
+  List<Map<String, String>> _getVendorRateRows(LiveRateItem item) {
     final List<Map<String, String>> rows = [];
-    final Set<String> seenKeys = {};
+    rows.add({
+      'brand': item.vendorProduct.isNotEmpty ? item.vendorProduct : 'N/A',
+      'qty': item.vendorProductSize.isNotEmpty ? item.vendorProductSize : 'N/A',
+      'rate': item.vendorProductRate,
+    });
 
-    final vendorProducts = rateData.data
-        .where((v) => v.vendorId == item.vendorId || (v.vendorId == 0 && v.vendorName == item.vendorName))
-        .toList();
-
-    final itemsToProcess = vendorProducts.isNotEmpty ? vendorProducts : [item];
-
-    for (var p in itemsToProcess) {
-      final key = '${p.vendorProduct}_${p.vendorProductSize}_${p.vendorProductRate}';
-      if (!seenKeys.contains(key)) {
-        seenKeys.add(key);
-        rows.add({
-          'brand': p.vendorProduct.isNotEmpty ? p.vendorProduct : 'N/A',
-          'qty': p.vendorProductSize.isNotEmpty ? p.vendorProductSize : 'N/A',
-          'rate': p.vendorProductRate,
-        });
-      }
-
-      for (var stk in p.stocks) {
-        final stkBrand = stk.vendorProduct.isNotEmpty ? stk.vendorProduct : p.vendorProduct;
-        final stkQty = stk.vendorProductSize.isNotEmpty ? stk.vendorProductSize : p.vendorProductSize;
-        final stkKey = '${stkBrand}_${stkQty}_${stk.rate}';
-        if (!seenKeys.contains(stkKey)) {
-          seenKeys.add(stkKey);
-          rows.add({
-            'brand': stkBrand.isNotEmpty ? stkBrand : 'N/A',
-            'qty': stkQty.isNotEmpty ? stkQty : 'N/A',
-            'rate': stk.rate,
-          });
-        }
-      }
+    for (var stk in item.stocks) {
+      final stkBrand = stk.vendorProduct.isNotEmpty ? stk.vendorProduct : item.vendorProduct;
+      final stkQty = stk.vendorProductSize.isNotEmpty ? stk.vendorProductSize : item.vendorProductSize;
+      rows.add({
+        'brand': stkBrand.isNotEmpty ? stkBrand : 'N/A',
+        'qty': stkQty.isNotEmpty ? stkQty : 'N/A',
+        'rate': stk.rate,
+      });
     }
 
     return rows;
@@ -675,7 +659,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
 
   Widget _buildRatesVendorCard(LiveRateItem item, LiveRateResponse rateData) {
     final imgUrl = rateData.getFullVendorImageUrl(item);
-    final dynamicRows = _getVendorRateRows(item, rateData);
+    final dynamicRows = _getVendorRateRows(item);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -702,10 +686,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                 child: SizedBox(
                   width: 76,
                   height: 76,
-                  child: Image.network(
-                    imgUrl,
+                  child: AppCachedNetworkImage(
+                    imageUrl: imgUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
+                    errorWidget: Container(
                       color: const Color(0xFFF0F7F2),
                       child: const Center(
                         child: Icon(Icons.business_rounded, color: Color(0xFF1B7A44), size: 36),
@@ -816,7 +800,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                     ],
                   ),
                 ),
-                ...dynamicRows.take(2).map(
+                ...dynamicRows.take(1).map(
                       (r) => _buildRateTableRow(
                         brand: r['brand']!,
                         qty: r['qty']!,
@@ -826,31 +810,33 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerRight,
-            child: InkWell(
-              onTap: () => _showRatesDetailDialog(context, item, rateData),
-              borderRadius: BorderRadius.circular(8),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'View More',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF1B7A44),
+          if (item.stocks.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerRight,
+              child: InkWell(
+                onTap: () => _showRatesDetailDialog(context, item, rateData),
+                borderRadius: BorderRadius.circular(8),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'View More',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1B7A44),
+                        ),
                       ),
-                    ),
-                    Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF1B7A44)),
-                  ],
+                      Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF1B7A44)),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -913,7 +899,17 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
 
   void _showRatesDetailDialog(BuildContext context, LiveRateItem item, LiveRateResponse rateData) {
     final imgUrl = rateData.getFullVendorImageUrl(item);
-    final rateRows = _getVendorRateRows(item, rateData);
+    final rateRows = item.stocks.isNotEmpty
+        ? item.stocks.map((stk) {
+            final brand = stk.vendorProduct.isNotEmpty ? stk.vendorProduct : item.vendorProduct;
+            final qty = stk.vendorProductSize.isNotEmpty ? stk.vendorProductSize : item.vendorProductSize;
+            return {
+              'brand': brand.isNotEmpty ? brand : 'N/A',
+              'qty': qty.isNotEmpty ? qty : 'N/A',
+              'rate': stk.rate,
+            };
+          }).toList()
+        : _getVendorRateRows(item);
 
     showDialog(
       context: context,
@@ -955,10 +951,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                         child: SizedBox(
                           width: 90,
                           height: 90,
-                          child: Image.network(
-                            imgUrl,
+                          child: AppCachedNetworkImage(
+                            imageUrl: imgUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(
+                            errorWidget: Container(
                               color: const Color(0xFFF0F7F2),
                               child: const Icon(Icons.business_rounded, size: 40, color: Color(0xFF1B7A44)),
                             ),
@@ -1167,10 +1163,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                         child: SizedBox(
                           width: 110,
                           height: 110,
-                          child: Image.network(
-                            imgUrl,
+                          child: AppCachedNetworkImage(
+                            imageUrl: imgUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(
+                            errorWidget: Container(
                               color: const Color(0xFFF0F7F2),
                               child: const Icon(Icons.opacity_rounded, size: 40, color: Color(0xFF1B7A44)),
                             ),
@@ -1583,10 +1579,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                 child: SizedBox(
                   width: 76,
                   height: 76,
-                  child: Image.network(
-                    imgUrl,
+                  child: AppCachedNetworkImage(
+                    imageUrl: imgUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
+                    errorWidget: Container(
                       color: const Color(0xFFF0F7F2),
                       child: const Center(
                         child: Icon(Icons.grid_view_rounded, color: Color(0xFF1B7A44), size: 36),
@@ -1746,10 +1742,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                         child: SizedBox(
                           width: 85,
                           height: 85,
-                          child: Image.network(
-                            imgUrl,
+                          child: AppCachedNetworkImage(
+                            imageUrl: imgUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(
+                            errorWidget: Container(
                               color: const Color(0xFFF0F7F2),
                               child: const Icon(Icons.grid_view_rounded, size: 40, color: Color(0xFF1B7A44)),
                             ),
@@ -1985,10 +1981,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                       child: SizedBox(
                         width: 80,
                         height: 80,
-                        child: Image.network(
-                          imgUrl,
+                        child: AppCachedNetworkImage(
+                          imageUrl: imgUrl,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
+                          errorWidget: Container(
                             color: const Color(0xFFF0F7F2),
                             child: const Center(
                               child: Icon(Icons.newspaper_rounded, color: Color(0xFF1B7A44), size: 36),
@@ -2087,6 +2083,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
             ),
           ),
         ),
+        
       ),
     );
   }
@@ -2326,13 +2323,12 @@ class _CategoryBannerSliderState extends State<_CategoryBannerSlider> {
                       final imgUrl = sliderRes.getFullImageUrl(item);
                       return GestureDetector(
                         onTap: () => _launchSliderUrl(item.url),
-                        child: Image.network(
-                          imgUrl,
+                        child: AppCachedNetworkImage(
+                          imageUrl: imgUrl,
                           fit: BoxFit.cover,
                           width: double.infinity,
                           height: double.infinity,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const SizedBox.shrink(),
+                          errorWidget: const SizedBox.shrink(),
                         ),
                       );
                     },
