@@ -89,6 +89,16 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     });
   }
 
+  List<Map<String, String>> _getVendorRateRows(LiveRateItem item) {
+    return [
+      {
+        'brand': item.vendorProduct.isNotEmpty ? item.vendorProduct : 'N/A',
+        'qty': item.vendorProductSize.isNotEmpty ? item.vendorProductSize : 'N/A',
+        'rate': item.vendorProductRate,
+      },
+    ];
+  }
+
   Future<void> _makePhoneCall(String phoneNumber) async {
     final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
     try {
@@ -357,6 +367,15 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                 return vendor.contains(q) || prod.contains(q) || size.contains(q) || rate.contains(q) || rowMatch;
               }).toList();
 
+        final Map<String, List<LiveRateItem>> ratesVendorGroupsMap = {};
+        if (!isLiveTab) {
+          for (var item in filteredItems) {
+            final key = item.vendorId != 0 ? '${item.vendorId}' : item.vendorName;
+            ratesVendorGroupsMap.putIfAbsent(key, () => []).add(item);
+          }
+        }
+        final ratesVendorGroupsList = ratesVendorGroupsMap.values.toList();
+
         return SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 90),
@@ -379,13 +398,12 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                  itemCount: filteredItems.length,
+                  itemCount: isLiveTab ? filteredItems.length : ratesVendorGroupsList.length,
                   separatorBuilder: (context, index) => const SizedBox(height: 14),
                   itemBuilder: (context, index) {
-                    final item = filteredItems[index];
                     return isLiveTab
-                        ? _buildLiveProductRateCard(item, rateData!)
-                        : _buildRatesVendorCard(item, rateData!);
+                        ? _buildLiveProductRateCard(filteredItems[index], rateData!)
+                        : _buildRatesVendorGroupCard(ratesVendorGroupsList[index], rateData!);
                   },
                 ),
             ],
@@ -490,20 +508,24 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
       child: Column(
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: SizedBox(
-                  width: 85,
-                  height: 85,
-                  child: AppCachedNetworkImage(
-                    imageUrl: imgUrl,
-                    fit: BoxFit.cover,
-                    errorWidget: Container(
-                      color: const Color(0xFFF0F7F2),
-                      child: const Center(
-                        child: Icon(Icons.opacity_rounded, color: Color(0xFF1B7A44), size: 36),
+              SizedBox(
+                width: 85,
+                height: 85,
+                child: Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: AppCachedNetworkImage(
+                      imageUrl: imgUrl,
+                      fit: BoxFit.contain,
+                      errorWidget: Container(
+                        width: 85,
+                        height: 85,
+                        color: const Color(0xFFF0F7F2),
+                        child: const Center(
+                          child: Icon(Icons.opacity_rounded, color: Color(0xFF1B7A44), size: 36),
+                        ),
                       ),
                     ),
                   ),
@@ -636,30 +658,12 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     );
   }
 
-  List<Map<String, String>> _getVendorRateRows(LiveRateItem item) {
-    final List<Map<String, String>> rows = [];
-    rows.add({
-      'brand': item.vendorProduct.isNotEmpty ? item.vendorProduct : 'N/A',
-      'qty': item.vendorProductSize.isNotEmpty ? item.vendorProductSize : 'N/A',
-      'rate': item.vendorProductRate,
-    });
+  Widget _buildRatesVendorGroupCard(List<LiveRateItem> groupItems, LiveRateResponse rateData) {
+    if (groupItems.isEmpty) return const SizedBox.shrink();
 
-    for (var stk in item.stocks) {
-      final stkBrand = stk.vendorProduct.isNotEmpty ? stk.vendorProduct : item.vendorProduct;
-      final stkQty = stk.vendorProductSize.isNotEmpty ? stk.vendorProductSize : item.vendorProductSize;
-      rows.add({
-        'brand': stkBrand.isNotEmpty ? stkBrand : 'N/A',
-        'qty': stkQty.isNotEmpty ? stkQty : 'N/A',
-        'rate': stk.rate,
-      });
-    }
-
-    return rows;
-  }
-
-  Widget _buildRatesVendorCard(LiveRateItem item, LiveRateResponse rateData) {
-    final imgUrl = rateData.getFullVendorImageUrl(item);
-    final dynamicRows = _getVendorRateRows(item);
+    final firstItem = groupItems.first;
+    final imgUrl = rateData.getFullVendorImageUrl(firstItem);
+    final bool showViewMore = groupItems.length > 1;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -679,20 +683,24 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: SizedBox(
-                  width: 76,
-                  height: 76,
-                  child: AppCachedNetworkImage(
-                    imageUrl: imgUrl,
-                    fit: BoxFit.cover,
-                    errorWidget: Container(
-                      color: const Color(0xFFF0F7F2),
-                      child: const Center(
-                        child: Icon(Icons.business_rounded, color: Color(0xFF1B7A44), size: 36),
+              SizedBox(
+                width: 80,
+                height: 80,
+                child: Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: AppCachedNetworkImage(
+                      imageUrl: imgUrl,
+                      fit: BoxFit.contain,
+                      errorWidget: Container(
+                        width: 76,
+                        height: 76,
+                        color: const Color(0xFFF0F7F2),
+                        child: const Center(
+                          child: Icon(Icons.business_rounded, color: Color(0xFF1B7A44), size: 36),
+                        ),
                       ),
                     ),
                   ),
@@ -704,7 +712,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.vendorName,
+                      firstItem.vendorName,
                       style: const TextStyle(
                         fontSize: 15.5,
                         fontWeight: FontWeight.w900,
@@ -713,14 +721,12 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    
-                    const SizedBox(height: 4),
                     Row(
                       children: [
                         const Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFF1B7A44)),
                         const SizedBox(width: 4),
                         Text(
-                          AppDateFormatter.format(item.vendorProductCreatedDate),
+                          AppDateFormatter.format(firstItem.vendorProductCreatedDate),
                           style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF4A5568)),
                         ),
                         const SizedBox(width: 8),
@@ -729,7 +735,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                         const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF1B7A44)),
                         const SizedBox(width: 4),
                         Text(
-                          item.vendorProductCreatedTime,
+                          firstItem.vendorProductCreatedTime,
                           style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF4A5568)),
                         ),
                       ],
@@ -737,9 +743,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                   ],
                 ),
               ),
-              if (item.hasValidVendorMobile)
+              if (firstItem.hasValidVendorMobile)
                 InkWell(
-                  onTap: () => _makePhoneCall(item.vendorMobile!),
+                  onTap: () => _makePhoneCall(firstItem.vendorMobile!),
                   borderRadius: BorderRadius.circular(22),
                   child: Container(
                     width: 42,
@@ -800,22 +806,40 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                     ],
                   ),
                 ),
-                ...dynamicRows.take(1).map(
-                      (r) => _buildRateTableRow(
-                        brand: r['brand']!,
-                        qty: r['qty']!,
-                        rate: r['rate']!,
+                if (showViewMore) ...[
+                  Container(
+                    height: 75,
+                    clipBehavior: Clip.hardEdge,
+                    decoration: const BoxDecoration(),
+                    child: SingleChildScrollView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      child: Column(
+                        children: groupItems.take(2).map((item) {
+                          return _buildRateTableRow(
+                            brand: item.vendorProduct.isNotEmpty ? item.vendorProduct : 'N/A',
+                            qty: item.vendorProductSize.isNotEmpty ? item.vendorProductSize : 'N/A',
+                            rate: item.vendorProductRate,
+                          );
+                        }).toList(),
                       ),
                     ),
+                  ),
+                ] else ...[
+                  _buildRateTableRow(
+                    brand: firstItem.vendorProduct.isNotEmpty ? firstItem.vendorProduct : 'N/A',
+                    qty: firstItem.vendorProductSize.isNotEmpty ? firstItem.vendorProductSize : 'N/A',
+                    rate: firstItem.vendorProductRate,
+                  ),
+                ],
               ],
             ),
           ),
-          if (item.stocks.isNotEmpty) ...[
+          if (showViewMore) ...[
             const SizedBox(height: 10),
             Align(
               alignment: Alignment.centerRight,
               child: InkWell(
-                onTap: () => _showRatesDetailDialog(context, item, rateData),
+                onTap: () => _showRatesDetailDialog(context, groupItems, rateData),
                 borderRadius: BorderRadius.circular(8),
                 child: const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
@@ -897,19 +921,15 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     );
   }
 
-  void _showRatesDetailDialog(BuildContext context, LiveRateItem item, LiveRateResponse rateData) {
-    final imgUrl = rateData.getFullVendorImageUrl(item);
-    final rateRows = item.stocks.isNotEmpty
-        ? item.stocks.map((stk) {
-            final brand = stk.vendorProduct.isNotEmpty ? stk.vendorProduct : item.vendorProduct;
-            final qty = stk.vendorProductSize.isNotEmpty ? stk.vendorProductSize : item.vendorProductSize;
-            return {
-              'brand': brand.isNotEmpty ? brand : 'N/A',
-              'qty': qty.isNotEmpty ? qty : 'N/A',
-              'rate': stk.rate,
-            };
-          }).toList()
-        : _getVendorRateRows(item);
+  void _showRatesDetailDialog(BuildContext context, List<LiveRateItem> groupItems, LiveRateResponse rateData) {
+    if (groupItems.isEmpty) return;
+    final firstItem = groupItems.first;
+    final imgUrl = rateData.getFullVendorImageUrl(firstItem);
+
+    final List<LiveStockItem> allStocks = [];
+    for (var item in groupItems) {
+      allStocks.addAll(item.stocks);
+    }
 
     showDialog(
       context: context,
@@ -944,19 +964,23 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                     ],
                   ),
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: SizedBox(
-                          width: 90,
-                          height: 90,
-                          child: AppCachedNetworkImage(
-                            imageUrl: imgUrl,
-                            fit: BoxFit.cover,
-                            errorWidget: Container(
-                              color: const Color(0xFFF0F7F2),
-                              child: const Icon(Icons.business_rounded, size: 40, color: Color(0xFF1B7A44)),
+                      SizedBox(
+                        width: 90,
+                        height: 90,
+                        child: Center(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: AppCachedNetworkImage(
+                              imageUrl: imgUrl,
+                              fit: BoxFit.contain,
+                              errorWidget: Container(
+                                width: 90,
+                                height: 90,
+                                color: const Color(0xFFF0F7F2),
+                                child: const Icon(Icons.business_rounded, size: 40, color: Color(0xFF1B7A44)),
+                              ),
                             ),
                           ),
                         ),
@@ -967,7 +991,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              item.vendorName,
+                              firstItem.vendorName,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w900,
@@ -976,14 +1000,12 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                               ),
                             ),
                             const SizedBox(height: 6),
-                            
-                            const SizedBox(height: 4),
                             Row(
                               children: [
                                 const Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFF1B7A44)),
                                 const SizedBox(width: 4),
                                 Text(
-                                  AppDateFormatter.format(item.vendorProductCreatedDate),
+                                  AppDateFormatter.format(firstItem.vendorProductCreatedDate),
                                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF4A5568)),
                                 ),
                                 const SizedBox(width: 6),
@@ -992,7 +1014,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                 const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF1B7A44)),
                                 const SizedBox(width: 4),
                                 Text(
-                                  item.vendorProductCreatedTime,
+                                  firstItem.vendorProductCreatedTime,
                                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF4A5568)),
                                 ),
                               ],
@@ -1000,6 +1022,24 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                           ],
                         ),
                       ),
+                      if (firstItem.hasValidVendorMobile)
+                        InkWell(
+                          onTap: () => _makePhoneCall(firstItem.vendorMobile!),
+                          borderRadius: BorderRadius.circular(22),
+                          child: Container(
+                            width: 42,
+                            height: 42,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFDCF2E5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.phone_in_talk_rounded,
+                              color: Color(0xFF0F5A2F),
+                              size: 20,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 18),
@@ -1048,67 +1088,140 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                         ListView.separated(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: rateRows.length,
+                          itemCount: groupItems.length,
                           separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF0F7F2)),
                           itemBuilder: (context, idx) {
-                            final row = rateRows[idx];
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    flex: 3,
-                                    child: Text(
-                                      row['brand']!,
-                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF4A5568)),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    flex: 2,
-                                    child: Text(
-                                      row['qty']!,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(fontSize: 11.5, color: Color(0xFF4A5568)),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    flex: 3,
-                                    child: Align(
-                                      alignment: Alignment.centerRight,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFEEFAF2),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Text(
-                                            '₹ ${row['rate']}',
-                                            style: const TextStyle(
-                                              fontSize: 12.5,
-                                              fontWeight: FontWeight.w900,
-                                              color: Color(0xFF0A4B26),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            final item = groupItems[idx];
+                            return _buildRateTableRow(
+                              brand: item.vendorProduct.isNotEmpty ? item.vendorProduct : 'N/A',
+                              qty: item.vendorProductSize.isNotEmpty ? item.vendorProductSize : 'N/A',
+                              rate: item.vendorProductRate,
                             );
                           },
                         ),
                       ],
                     ),
                   ),
+                  if (allStocks.isNotEmpty) ...[
+                    const SizedBox(height: 18),
+                    const Text(
+                      'Rate History',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF0C3A20),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFDDEDE4)),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFEEFAF2),
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+                            ),
+                            child: const Row(
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: Text(
+                                    'BRAND / QTY',
+                                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0C3A20)),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 3,
+                                  child: Text(
+                                    'DATE & TIME',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0C3A20)),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    'RATE (₹)',
+                                    textAlign: TextAlign.right,
+                                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0C3A20)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: allStocks.length,
+                            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF0F7F2)),
+                            itemBuilder: (context, idx) {
+                              final stock = allStocks[idx];
+                              final brand = stock.vendorProduct.isNotEmpty ? stock.vendorProduct : firstItem.vendorProduct;
+                              final qty = stock.vendorProductSize.isNotEmpty ? stock.vendorProductSize : firstItem.vendorProductSize;
+                              final brandQtyText = (qty.isNotEmpty && qty != 'N/A') ? '$brand ($qty)' : brand;
+
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text(
+                                        brandQtyText,
+                                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF4A5568)),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text(
+                                        '${AppDateFormatter.format(stock.date)}\n${stock.time}',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(fontSize: 11, color: Color(0xFF4A5568), fontWeight: FontWeight.w500),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Align(
+                                        alignment: Alignment.centerRight,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFEEFAF2),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              '₹ ${stock.rate}',
+                                              style: const TextStyle(
+                                                fontSize: 12.5,
+                                                fontWeight: FontWeight.w900,
+                                                color: Color(0xFF0A4B26),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -1156,19 +1269,23 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                     ],
                   ),
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: SizedBox(
-                          width: 110,
-                          height: 110,
-                          child: AppCachedNetworkImage(
-                            imageUrl: imgUrl,
-                            fit: BoxFit.cover,
-                            errorWidget: Container(
-                              color: const Color(0xFFF0F7F2),
-                              child: const Icon(Icons.opacity_rounded, size: 40, color: Color(0xFF1B7A44)),
+                      SizedBox(
+                        width: 100,
+                        height: 100,
+                        child: Center(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: AppCachedNetworkImage(
+                              imageUrl: imgUrl,
+                              fit: BoxFit.contain,
+                              errorWidget: Container(
+                                width: 100,
+                                height: 100,
+                                color: const Color(0xFFF0F7F2),
+                                child: const Icon(Icons.opacity_rounded, size: 40, color: Color(0xFF1B7A44)),
+                              ),
                             ),
                           ),
                         ),
@@ -1572,20 +1689,24 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: SizedBox(
-                  width: 76,
-                  height: 76,
-                  child: AppCachedNetworkImage(
-                    imageUrl: imgUrl,
-                    fit: BoxFit.cover,
-                    errorWidget: Container(
-                      color: const Color(0xFFF0F7F2),
-                      child: const Center(
-                        child: Icon(Icons.grid_view_rounded, color: Color(0xFF1B7A44), size: 36),
+              SizedBox(
+                width: 80,
+                height: 80,
+                child: Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: AppCachedNetworkImage(
+                      imageUrl: imgUrl,
+                      fit: BoxFit.contain,
+                      errorWidget: Container(
+                        width: 76,
+                        height: 76,
+                        color: const Color(0xFFF0F7F2),
+                        child: const Center(
+                          child: Icon(Icons.grid_view_rounded, color: Color(0xFF1B7A44), size: 36),
+                        ),
                       ),
                     ),
                   ),
@@ -1735,19 +1856,23 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                     ],
                   ),
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: SizedBox(
-                          width: 85,
-                          height: 85,
-                          child: AppCachedNetworkImage(
-                            imageUrl: imgUrl,
-                            fit: BoxFit.cover,
-                            errorWidget: Container(
-                              color: const Color(0xFFF0F7F2),
-                              child: const Icon(Icons.grid_view_rounded, size: 40, color: Color(0xFF1B7A44)),
+                      SizedBox(
+                        width: 85,
+                        height: 85,
+                        child: Center(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: AppCachedNetworkImage(
+                              imageUrl: imgUrl,
+                              fit: BoxFit.contain,
+                              errorWidget: Container(
+                                width: 85,
+                                height: 85,
+                                color: const Color(0xFFF0F7F2),
+                                child: const Icon(Icons.grid_view_rounded, size: 40, color: Color(0xFF1B7A44)),
+                              ),
                             ),
                           ),
                         ),
@@ -1974,20 +2099,24 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: SizedBox(
-                        width: 80,
-                        height: 80,
-                        child: AppCachedNetworkImage(
-                          imageUrl: imgUrl,
-                          fit: BoxFit.cover,
-                          errorWidget: Container(
-                            color: const Color(0xFFF0F7F2),
-                            child: const Center(
-                              child: Icon(Icons.newspaper_rounded, color: Color(0xFF1B7A44), size: 36),
+                    SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: Center(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: AppCachedNetworkImage(
+                            imageUrl: imgUrl,
+                            fit: BoxFit.contain,
+                            errorWidget: Container(
+                              width: 80,
+                              height: 80,
+                              color: const Color(0xFFF0F7F2),
+                              child: const Center(
+                                child: Icon(Icons.newspaper_rounded, color: Color(0xFF1B7A44), size: 36),
+                              ),
                             ),
                           ),
                         ),
