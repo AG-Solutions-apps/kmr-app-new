@@ -76,7 +76,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         imageUrl: displayImgUrl,
                         fit: BoxFit.cover,
                         errorWidget: const Center(
-                          child: Icon(Icons.notifications_active_rounded, color: Color(0xFF1B7A44), size: 48),
+                          child: Icon(Icons.notifications_active_rounded, color: Color(0xFF0A3B73), size: 48),
                         ),
                       ),
                     ),
@@ -93,21 +93,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEEFAF2),
+                            color: const Color(0xFFEBF3FA),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(color: const Color(0xFFBDD9C8), width: 0.8),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.calendar_month_rounded, size: 14, color: Color(0xFF1B7A44)),
+                              const Icon(Icons.calendar_month_rounded, size: 14, color: Color(0xFF0A3B73)),
                               const SizedBox(width: 6),
                               Text(
                                 item.date,
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1B7A44),
+                                  color: Color(0xFF0A3B73),
                                 ),
                               ),
                             ],
@@ -123,12 +123,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF0F291E),
+                      color: Color(0xFF061E36),
                       height: 1.3,
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const Divider(color: Color(0xFFEEFAF2), height: 1),
+                  const Divider(color: Color(0xFFEBF3FA), height: 1),
                   const SizedBox(height: 12),
 
                   // Full Long Description
@@ -153,13 +153,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4FAF6),
+      backgroundColor: const Color(0xFFF0F5FA),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60.0),
         child: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF0A4B26), Color(0xFF1B7A44)],
+              colors: [Color(0xFF0A3B73), Color(0xFF155799)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -239,7 +239,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         ),
       ),
       body: RefreshIndicator(
-        color: const Color(0xFF0F5A2F),
+        color: const Color(0xFF0A3B73),
         backgroundColor: Colors.white,
         strokeWidth: 2.5,
         onRefresh: () async {
@@ -285,7 +285,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF0C3A20),
+                          color: Color(0xFF061E36),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -300,7 +300,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         icon: const Icon(Icons.refresh_rounded, size: 18),
                         label: const Text('Try Again'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1B7A44),
+                          backgroundColor: const Color(0xFF0A3B73),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           shape: RoundedRectangleBorder(
@@ -331,11 +331,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       Container(
                         padding: const EdgeInsets.all(22),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFDCF2E5),
+                          color: const Color(0xFFD0E1F4),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF1B7A44).withValues(alpha: 0.12),
+                              color: const Color(0xFF0A3B73).withValues(alpha: 0.12),
                               blurRadius: 20,
                               offset: const Offset(0, 6),
                             ),
@@ -344,7 +344,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         child: const Icon(
                           Icons.notifications_none_rounded,
                           size: 52,
-                          color: Color(0xFF1B7A44),
+                          color: Color(0xFF0A3B73),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -353,7 +353,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFF0C3A20),
+                          color: Color(0xFF061E36),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -405,7 +405,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2F1E8), width: 1.2),
+            border: Border.all(color: const Color(0xFFD0E1F4), width: 1.2),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
@@ -429,9 +429,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         imageUrl: displayImgUrl,
                         fit: BoxFit.cover,
                         errorWidget: Container(
-                          color: const Color(0xFFEEFAF2),
+                          color: const Color(0xFFEBF3FA),
                           child: const Center(
-                            child: Icon(Icons.notifications_active_rounded, color: Color(0xFF1B7A44), size: 36),
+                            child: Icon(Icons.notifications_active_rounded, color: Color(0xFF0A3B73), size: 36),
                           ),
                         ),
                       ),
@@ -444,7 +444,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00B050),
+                        color: const Color(0xFF0A3B73),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -499,20 +499,20 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEEFAF2),
+                              color: const Color(0xFFEBF3FA),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.calendar_month_rounded, size: 12, color: Color(0xFF1B7A44)),
+                                const Icon(Icons.calendar_month_rounded, size: 12, color: Color(0xFF0A3B73)),
                                 const SizedBox(width: 4),
                                 Text(
                                   item.date,
                                   style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFF1B7A44),
+                                    color: Color(0xFF0A3B73),
                                   ),
                                 ),
                               ],
@@ -529,7 +529,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF0F291E),
+                        color: Color(0xFF061E36),
                         height: 1.25,
                       ),
                       maxLines: 1,
@@ -561,12 +561,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           width: 32,
                           height: 32,
                           decoration: const BoxDecoration(
-                            color: Color(0xFFEEFAF2),
+                            color: Color(0xFFEBF3FA),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
                             Icons.chevron_right_rounded,
-                            color: Color(0xFF1B7A44),
+                            color: Color(0xFF0A3B73),
                             size: 20,
                           ),
                         ),
@@ -589,7 +589,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFDDEDE4)),
+        border: Border.all(color: const Color(0xFFD0E1F4)),
       ),
       child: Row(
         children: [

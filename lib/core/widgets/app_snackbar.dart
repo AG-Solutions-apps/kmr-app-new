@@ -58,12 +58,12 @@ class AppSnackBar {
       context: context,
       title: title,
       message: message,
-      bgColor: const Color(0xFFEEFAF2),
-      borderColor: const Color(0xFFBDD9C8),
-      badgeColor: const Color(0xFF1B7A44),
+      bgColor: const Color(0xFFEBF3FA),
+      borderColor: const Color(0xFFD0E1F4),
+      badgeColor: const Color(0xFF0A3B73),
       badgeIcon: Icons.info_outline_rounded,
-      titleColor: const Color(0xFF0C3A20),
-      messageColor: const Color(0xFF1B7A44),
+      titleColor: const Color(0xFF061E36),
+      messageColor: const Color(0xFF0A3B73),
       duration: duration,
     );
   }

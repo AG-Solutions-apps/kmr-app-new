@@ -44,11 +44,12 @@ class SpotRateResponse {
     String noImg = 'https://kmrlive.in/crmapi/public/assets/images/no_image.jpg';
     String spotImg = 'https://kmrlive.in/crmapi/public/assets/images/vendor_images/';
 
-    if (json['image_url'] is List) {
-      for (var imgObj in json['image_url']) {
+    final dynamic imageList = json['image_url'] ?? json['image_path'] ?? json['images'];
+    if (imageList is List) {
+      for (var imgObj in imageList) {
         if (imgObj is Map) {
           final String forVal = imgObj['image_for']?.toString() ?? '';
-          final String urlVal = imgObj['image_url']?.toString() ?? '';
+          final String urlVal = imgObj['image_url']?.toString() ?? imgObj['image_path']?.toString() ?? '';
           if (forVal.toLowerCase().contains('no image') && urlVal.isNotEmpty) {
             noImg = urlVal;
           } else if (forVal.toLowerCase().contains('vendor') ||
@@ -69,7 +70,9 @@ class SpotRateResponse {
   }
 
   String getFullSpotImageUrl(SpotRateItem item) {
-    if (item.vendorImage != null && item.vendorImage!.trim().isNotEmpty) {
+    if (item.vendorImage != null &&
+        item.vendorImage!.trim().isNotEmpty &&
+        item.vendorImage!.toLowerCase() != 'null') {
       final img = item.vendorImage!.trim();
       if (img.startsWith('http://') || img.startsWith('https://')) {
         return img;

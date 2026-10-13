@@ -287,13 +287,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4FAF6),
+      backgroundColor: const Color(0xFFF0F5FA),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60.0),
         child: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF0A4B26), Color(0xFF1B7A44)],
+              colors: [Color(0xFF0A3B73), Color(0xFF155799)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -346,7 +346,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SafeArea(
         child: _isLoading
             ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF1B7A44)),
+                child: CircularProgressIndicator(color: Color(0xFF0A3B73)),
               )
             : _errorMessage != null
                 ? Center(
@@ -368,7 +368,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             icon: const Icon(Icons.refresh_rounded),
                             label: const Text('Retry'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF1B7A44),
+                              backgroundColor: const Color(0xFF0A3B73),
                               foregroundColor: Colors.white,
                             ),
                           ),
@@ -389,7 +389,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(22),
-                              border: Border.all(color: const Color(0xFFDDEDE4), width: 1.1),
+                              border: Border.all(color: const Color(0xFFD0E1F4), width: 1.1),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.04),
@@ -405,7 +405,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   height: 64,
                                   decoration: const BoxDecoration(
                                     gradient: LinearGradient(
-                                      colors: [Color(0xFF0A4B26), Color(0xFF1B7A44)],
+                                      colors: [Color(0xFF0A3B73), Color(0xFF155799)],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
                                     ),
@@ -436,7 +436,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF0C3A20),
+                                          color: Color(0xFF061E36),
                                         ),
                                       ),
                                       const SizedBox(height: 4),
@@ -470,7 +470,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w900,
-                                    color: Color(0xFF0C3A20),
+                                    color: Color(0xFF061E36),
                                     letterSpacing: 1.1,
                                   ),
                                 ),
@@ -482,17 +482,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       _isEditing = true;
                                     });
                                   },
-                                  icon: const Icon(Icons.edit_rounded, size: 16, color: Color(0xFF1B7A44)),
+                                  icon: const Icon(Icons.edit_rounded, size: 16, color: Color(0xFF0A3B73)),
                                   label: const Text(
                                     'Edit Profile',
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1B7A44),
+                                      color: Color(0xFF0A3B73),
                                     ),
                                   ),
                                   style: TextButton.styleFrom(
-                                    backgroundColor: const Color(0xFFDCF2E5),
+                                    backgroundColor: const Color(0xFFD0E1F4),
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16),
@@ -511,7 +511,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(22),
-                                border: Border.all(color: const Color(0xFFDDEDE4), width: 1.1),
+                                border: Border.all(color: const Color(0xFFD0E1F4), width: 1.1),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.04),
@@ -560,7 +560,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(22),
-                                border: Border.all(color: const Color(0xFF1B7A44), width: 1.3),
+                                border: Border.all(color: const Color(0xFF0A3B73), width: 1.3),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.05),
@@ -647,16 +647,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       labelText: 'Email Address (Editable)',
                                       prefixIcon: const Icon(
                                         Icons.email_outlined,
-                                        color: Color(0xFF1B7A44),
+                                        color: Color(0xFF0A3B73),
                                       ),
                                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                                       enabledBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(14),
-                                        borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 1.2),
+                                        borderSide: const BorderSide(color: Color(0xFF0A3B73), width: 1.2),
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(14),
-                                        borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 2),
+                                        borderSide: const BorderSide(color: Color(0xFF0A3B73), width: 2),
                                       ),
                                       fillColor: const Color(0xFFFAFDFA),
                                       filled: true,
@@ -677,16 +677,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       labelText: 'City (Editable)',
                                       prefixIcon: const Icon(
                                         Icons.location_city_rounded,
-                                        color: Color(0xFF1B7A44),
+                                        color: Color(0xFF0A3B73),
                                       ),
                                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                                       enabledBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(14),
-                                        borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 1.2),
+                                        borderSide: const BorderSide(color: Color(0xFF0A3B73), width: 1.2),
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(14),
-                                        borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 2),
+                                        borderSide: const BorderSide(color: Color(0xFF0A3B73), width: 2),
                                       ),
                                       fillColor: const Color(0xFFFAFDFA),
                                       filled: true,
@@ -708,16 +708,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       labelText: 'Address (Editable)',
                                       prefixIcon: const Icon(
                                         Icons.home_work_outlined,
-                                        color: Color(0xFF1B7A44),
+                                        color: Color(0xFF0A3B73),
                                       ),
                                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                                       enabledBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(14),
-                                        borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 1.2),
+                                        borderSide: const BorderSide(color: Color(0xFF0A3B73), width: 1.2),
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(14),
-                                        borderSide: const BorderSide(color: Color(0xFF1B7A44), width: 2),
+                                        borderSide: const BorderSide(color: Color(0xFF0A3B73), width: 2),
                                       ),
                                       fillColor: const Color(0xFFFAFDFA),
                                       filled: true,
@@ -762,7 +762,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         child: ElevatedButton(
                                           onPressed: _isUpdating ? null : _updateProfile,
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor: const Color(0xFF0A4B26),
+                                            backgroundColor: const Color(0xFF0A3B73),
                                             foregroundColor: Colors.white,
                                             padding: const EdgeInsets.symmetric(vertical: 14),
                                             elevation: 2,
@@ -902,10 +902,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: const BoxDecoration(
-              color: Color(0xFFEEFAF2),
+              color: Color(0xFFEBF3FA),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: const Color(0xFF1B7A44), size: 20),
+            child: Icon(icon, color: const Color(0xFF0A3B73), size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -926,7 +926,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: const TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF0C3A20),
+                    color: Color(0xFF061E36),
                   ),
                 ),
               ],

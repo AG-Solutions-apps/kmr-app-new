@@ -5,30 +5,34 @@ import 'package:flutter/services.dart';
 class AppColors {
   AppColors._();
 
-  // Primary Palette
-  static const Color primary = Color(0xFF1E40AF); // Royal Blue
-  static const Color primaryLight = Color(0xFF3B82F6);
-  static const Color primaryDark = Color(0xFF1E3A8A);
+  // Primary Palette (Deep Navy Blue matching swatch #0A3B73)
+  static const Color primary = Color(0xFF0A3B73); // Primary Deep Navy Blue
+  static const Color primaryLight = Color(0xFF155799); // Medium Royal Blue
+  static const Color primaryDark = Color(0xFF052342); // Midnight Blue
+
+  // Primary Gradient
+  static const List<Color> primaryGradient = [Color(0xFF0A3B73), Color(0xFF155799)];
+  static const List<Color> headerGradient = [Color(0xFF0A3B73), Color(0xFF155799)];
 
   // Accent & Secondary
-  static const Color secondary = Color(0xFF0EA5E9); // Ocean Cyan
-  static const Color accent = Color(0xFF6366F1); // Indigo
+  static const Color secondary = Color(0xFF0284C7); // Sky/Ocean Blue
+  static const Color accent = Color(0xFF2563EB); // Vivid Blue
 
   // Neutral / Background Light
-  static const Color backgroundLight = Color(0xFFF8FAFC);
+  static const Color backgroundLight = Color(0xFFF0F5FA);
   static const Color surfaceLight = Color(0xFFFFFFFF);
   static const Color cardLight = Color(0xFFFFFFFF);
-  static const Color borderLight = Color(0xFFE2E8F0);
+  static const Color borderLight = Color(0xFFD0E1F4);
 
   // Neutral / Background Dark
-  static const Color backgroundDark = Color(0xFF0F172A);
-  static const Color surfaceDark = Color(0xFF1E293B);
-  static const Color cardDark = Color(0xFF1E293B);
-  static const Color borderDark = Color(0xFF334155);
+  static const Color backgroundDark = Color(0xFF071321);
+  static const Color surfaceDark = Color(0xFF0D1F35);
+  static const Color cardDark = Color(0xFF0D1F35);
+  static const Color borderDark = Color(0xFF1B365D);
 
   // Text Colors
-  static const Color textPrimaryLight = Color(0xFF0F172A);
-  static const Color textSecondaryLight = Color(0xFF64748B);
+  static const Color textPrimaryLight = Color(0xFF061E36);
+  static const Color textSecondaryLight = Color(0xFF475569);
   static const Color textPrimaryDark = Color(0xFFF8FAFC);
   static const Color textSecondaryDark = Color(0xFF94A3B8);
 
@@ -36,7 +40,7 @@ class AppColors {
   static const Color success = Color(0xFF10B981);
   static const Color warning = Color(0xFFF59E0B);
   static const Color error = Color(0xFFEF4444);
-  static const Color info = Color(0xFF3B82F6);
+  static const Color info = Color(0xFF0284C7);
 }
 
 /// App Typography Styles
@@ -100,7 +104,7 @@ class AppTheme {
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         onPrimary: Colors.white,
-        primaryContainer: Color(0xFFDBEAFE),
+        primaryContainer: Color(0xFFD0E1F4),
         onPrimaryContainer: AppColors.primaryDark,
         secondary: AppColors.secondary,
         onSecondary: Colors.white,

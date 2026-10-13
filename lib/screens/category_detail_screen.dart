@@ -11,6 +11,7 @@ import '../services/session_service.dart';
 import '../core/widgets/app_snackbar.dart';
 import '../core/utils/date_formatter.dart';
 import '../widgets/app_cached_network_image.dart';
+import '../widgets/spot_details_widget.dart';
 import 'news_detail_screen.dart';
 
 /// Screen displaying Category Commodity Rates supporting both 'Live' and 'Rates' modes,
@@ -69,7 +70,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     }
   }
 
-  void _loadData() {
+  void _loadData({bool forceRefresh = false}) {
     setState(() {
       _liveRatesFuture = SessionService.getToken().then((token) {
         return ApiService().fetchAppLive(widget.category.id, token: token);
@@ -78,7 +79,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
         return ApiService().fetchAppRate(widget.category.id, token: token);
       });
       _spotRatesFuture = SessionService.getToken().then((token) {
-        return ApiService().fetchAppSpot(widget.category.id, token: token);
+        return ApiService().fetchAppSpot(widget.category.id, token: token, forceRefresh: forceRefresh);
       });
       _newsFuture = SessionService.getToken().then((token) {
         return ApiService().fetchAppNews(widget.category.id, token: token);
@@ -119,13 +120,13 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4FAF6),
+      backgroundColor: const Color(0xFFF0F5FA),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60.0),
         child: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF0A4B26), Color(0xFF1B7A44)],
+              colors: [Color(0xFF0A3B73), Color(0xFF155799)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -187,11 +188,11 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                     controller: _searchController,
                                     autofocus: true,
                                     style: const TextStyle(
-                                      color: Color(0xFF0A4B26),
+                                      color: Color(0xFF0A3B73),
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
                                     ),
-                                    cursorColor: const Color(0xFF0A4B26),
+                                    cursorColor: const Color(0xFF0A3B73),
                                     cursorWidth: 2.0,
                                     decoration: InputDecoration(
                                       hintText: 'Search ${_getTabName(_activeBottomTab)}...',
@@ -301,11 +302,11 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
       ),
       body: SafeArea(
         child: RefreshIndicator(
-          color: const Color(0xFF0F5A2F),
+          color: const Color(0xFF0A3B73),
           backgroundColor: Colors.white,
           strokeWidth: 2.5,
           onRefresh: () async {
-            _loadData();
+            _loadData(forceRefresh: true);
             await Future.wait([_liveRatesFuture, _ratesFuture, _spotRatesFuture, _newsFuture, _categorySlidersFuture]);
           },
           child: _buildBodyContent(),
@@ -316,18 +317,15 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   }
 
   Widget _buildBodyContent() {
-    switch (_activeBottomTab) {
-      case 0:
-        return _buildTabDataView(_liveRatesFuture, isLiveTab: true);
-      case 1:
-        return _buildTabDataView(_ratesFuture, isLiveTab: false);
-      case 2:
-        return _buildSpotTabDataView();
-      case 3:
-        return _buildNewsTabDataView();
-      default:
-        return _buildTabDataView(_liveRatesFuture, isLiveTab: true);
-    }
+    return IndexedStack(
+      index: _activeBottomTab,
+      children: [
+        _buildTabDataView(_liveRatesFuture, isLiveTab: true),
+        _buildTabDataView(_ratesFuture, isLiveTab: false),
+        _buildSpotTabDataView(),
+        _buildNewsTabDataView(),
+      ],
+    );
   }
 
   Widget _buildTabDataView(Future<LiveRateResponse> future, {required bool isLiveTab}) {
@@ -436,17 +434,17 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                   _selectedSubCategoryId = null;
                 });
               },
-              selectedColor: const Color(0xFF1B7A44),
-              backgroundColor: const Color(0xFFDCF2E5),
+              selectedColor: const Color(0xFF0A3B73),
+              backgroundColor: const Color(0xFFEBF3FA),
               labelStyle: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : const Color(0xFF1B7A44),
+                color: isSelected ? Colors.white : const Color(0xFF0A3B73),
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
                 side: BorderSide(
-                  color: isSelected ? const Color(0xFF1B7A44) : const Color(0xFFBDD9C8),
+                  color: isSelected ? const Color(0xFF0A3B73) : const Color(0xFFD0E1F4),
                 ),
               ),
               showCheckmark: false,
@@ -465,17 +463,17 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                 _selectedSubCategoryId = isSelected ? null : sub.id;
               });
             },
-            selectedColor: const Color(0xFF1B7A44),
-            backgroundColor: const Color(0xFFDCF2E5),
+            selectedColor: const Color(0xFF0A3B73),
+            backgroundColor: const Color(0xFFEBF3FA),
             labelStyle: TextStyle(
               fontSize: 12.5,
               fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.white : const Color(0xFF1B7A44),
+              color: isSelected ? Colors.white : const Color(0xFF0A3B73),
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
               side: BorderSide(
-                color: isSelected ? const Color(0xFF1B7A44) : const Color(0xFFBDD9C8),
+                color: isSelected ? const Color(0xFF0A3B73) : const Color(0xFFD0E1F4),
               ),
             ),
             showCheckmark: false,
@@ -496,7 +494,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFDDEDE4), width: 1.1),
+        border: Border.all(color: const Color(0xFFD0E1F4), width: 1.1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -522,9 +520,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                       errorWidget: Container(
                         width: 85,
                         height: 85,
-                        color: const Color(0xFFF0F7F2),
+                        color: const Color(0xFFEBF3FA),
                         child: const Center(
-                          child: Icon(Icons.opacity_rounded, color: Color(0xFF1B7A44), size: 36),
+                          child: Icon(Icons.opacity_rounded, color: Color(0xFF0A3B73), size: 36),
                         ),
                       ),
                     ),
@@ -536,97 +534,110 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Vendor Name: Full width so complete string is displayed; wraps to next line if needed
+                    Text(
+                      item.vendorName,
+                      style: const TextStyle(
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF061E36),
+                        height: 1.25,
+                      ),
+                      softWrap: true,
+                    ),
+                    const SizedBox(height: 6),
+                    // Product & Size on the left, Price Pill neatly arranged on the right
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Expanded(
-                          child: Text(
-                            item.vendorName,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF0C3A20),
-                              height: 1.2,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (item.vendorProduct.isNotEmpty)
+                                Text(
+                                  item.vendorProduct,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                  softWrap: true,
+                                ),
+                              if (item.vendorProductSize.isNotEmpty) ...[
+                                const SizedBox(height: 3),
+                                Text(
+                                  item.vendorProductSize,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                  softWrap: true,
+                                ),
+                              ],
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEEFAF2),
+                            color: const Color(0xFFEBF3FA),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: const Color(0xFFBDD9C8), width: 0.8),
+                            border: Border.all(color: const Color(0xFFD0E1F4), width: 0.8),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                '₹ ${item.vendorProductRate}',
+                                '\u20b9 ${item.vendorProductRate}' + (diff.isNotEmpty ? ' ' : ''),
                                 style: const TextStyle(
                                   fontSize: 14.5,
                                   fontWeight: FontWeight.w900,
-                                  color: Color(0xFF0A4B26),
+                                  color: Color(0xFF0A3B73),
                                 ),
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                diff,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: isNegative ? const Color(0xFFE53935) : const Color(0xFF1B7A44),
+                              if (diff.isNotEmpty) ...[
+                                const SizedBox(width: 4),
+                                Text(
+                                  diff,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: isNegative ? const Color(0xFFE53935) : const Color(0xFF0A3B73),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item.vendorProduct,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                    if (item.vendorProductSize.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        item.vendorProductSize,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          const Divider(height: 1, color: Color(0xFFEEFAF2)),
+          const Divider(height: 1, color: Color(0xFFEBF3FA)),
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: [
-                  const Icon(Icons.calendar_today_rounded, size: 13, color: Color(0xFF1B7A44)),
+                  const Icon(Icons.calendar_today_rounded, size: 13, color: Color(0xFF0A3B73)),
                   const SizedBox(width: 4),
                   Text(
                     AppDateFormatter.format(item.vendorProductCreatedDate),
-                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF1B7A44)),
+                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0A3B73)),
                   ),
                   const SizedBox(width: 10),
-                  const Icon(Icons.access_time_rounded, size: 13, color: Color(0xFF1B7A44)),
+                  const Icon(Icons.access_time_rounded, size: 13, color: Color(0xFF0A3B73)),
                   const SizedBox(width: 4),
                   Text(
                     item.vendorProductCreatedTime,
-                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF1B7A44)),
+                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0A3B73)),
                   ),
                 ],
               ),
@@ -643,10 +654,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF1B7A44),
+                            color: Color(0xFF0A3B73),
                           ),
                         ),
-                        Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF1B7A44)),
+                        Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF0A3B73)),
                       ],
                     ),
                   ),
@@ -670,7 +681,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFDDEDE4), width: 1.1),
+        border: Border.all(color: const Color(0xFFD0E1F4), width: 1.1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -697,9 +708,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                       errorWidget: Container(
                         width: 76,
                         height: 76,
-                        color: const Color(0xFFF0F7F2),
+                        color: const Color(0xFFEBF3FA),
                         child: const Center(
-                          child: Icon(Icons.business_rounded, color: Color(0xFF1B7A44), size: 36),
+                          child: Icon(Icons.business_rounded, color: Color(0xFF0A3B73), size: 36),
                         ),
                       ),
                     ),
@@ -716,14 +727,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                       style: const TextStyle(
                         fontSize: 15.5,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF0C3A20),
+                        color: Color(0xFF061E36),
                         height: 1.25,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFF1B7A44)),
+                        const Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFF0A3B73)),
                         const SizedBox(width: 4),
                         Text(
                           AppDateFormatter.format(firstItem.vendorProductCreatedDate),
@@ -732,7 +743,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                         const SizedBox(width: 8),
                         const Text('|', style: TextStyle(color: Colors.grey, fontSize: 11)),
                         const SizedBox(width: 8),
-                        const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF1B7A44)),
+                        const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF0A3B73)),
                         const SizedBox(width: 4),
                         Text(
                           firstItem.vendorProductCreatedTime,
@@ -751,12 +762,12 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                     width: 42,
                     height: 42,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFDCF2E5),
+                      color: Color(0xFFEBF3FA),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.phone_in_talk_rounded,
-                      color: Color(0xFF0F5A2F),
+                      color: Color(0xFF0A3B73),
                       size: 20,
                     ),
                   ),
@@ -768,14 +779,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFEEFAF2)),
+              border: Border.all(color: const Color(0xFFEBF3FA)),
             ),
             child: Column(
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: const BoxDecoration(
-                    color: Color(0xFFEEFAF2),
+                    color: Color(0xFFEBF3FA),
                     borderRadius: BorderRadius.vertical(top: Radius.circular(13)),
                   ),
                   child: const Row(
@@ -784,7 +795,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                         flex: 3,
                         child: Text(
                           'BRAND',
-                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0C3A20)),
+                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF061E36)),
                         ),
                       ),
                       Expanded(
@@ -792,7 +803,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                         child: Text(
                           'QUANTITY',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0C3A20)),
+                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF061E36)),
                         ),
                       ),
                       Expanded(
@@ -800,7 +811,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                         child: Text(
                           'Min/Max (+/-)',
                           textAlign: TextAlign.right,
-                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0C3A20)),
+                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF061E36)),
                         ),
                       ),
                     ],
@@ -851,10 +862,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                         style: TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFF1B7A44),
+                          color: Color(0xFF0A3B73),
                         ),
                       ),
-                      Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF1B7A44)),
+                      Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF0A3B73)),
                     ],
                   ),
                 ),
@@ -899,7 +910,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEEFAF2),
+                  color: const Color(0xFFEBF3FA),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: FittedBox(
@@ -909,7 +920,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF0A4B26),
+                      color: Color(0xFF0A3B73),
                     ),
                   ),
                 ),
@@ -955,10 +966,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: const BoxDecoration(
-                            color: Color(0xFFDCF2E5),
+                            color: Color(0xFFEBF3FA),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF1B7A44)),
+                          child: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF0A3B73)),
                         ),
                       ),
                     ],
@@ -978,8 +989,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                               errorWidget: Container(
                                 width: 90,
                                 height: 90,
-                                color: const Color(0xFFF0F7F2),
-                                child: const Icon(Icons.business_rounded, size: 40, color: Color(0xFF1B7A44)),
+                                color: const Color(0xFFEBF3FA),
+                                child: const Icon(Icons.business_rounded, size: 40, color: Color(0xFF0A3B73)),
                               ),
                             ),
                           ),
@@ -995,14 +1006,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w900,
-                                color: Color(0xFF0C3A20),
+                                color: Color(0xFF061E36),
                                 height: 1.25,
                               ),
                             ),
                             const SizedBox(height: 6),
                             Row(
                               children: [
-                                const Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFF1B7A44)),
+                                const Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFF0A3B73)),
                                 const SizedBox(width: 4),
                                 Text(
                                   AppDateFormatter.format(firstItem.vendorProductCreatedDate),
@@ -1011,7 +1022,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                 const SizedBox(width: 6),
                                 const Text('|', style: TextStyle(color: Colors.grey, fontSize: 10)),
                                 const SizedBox(width: 6),
-                                const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF1B7A44)),
+                                const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF0A3B73)),
                                 const SizedBox(width: 4),
                                 Text(
                                   firstItem.vendorProductCreatedTime,
@@ -1030,12 +1041,12 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                             width: 42,
                             height: 42,
                             decoration: const BoxDecoration(
-                              color: Color(0xFFDCF2E5),
+                              color: Color(0xFFEBF3FA),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               Icons.phone_in_talk_rounded,
-                              color: Color(0xFF0F5A2F),
+                              color: Color(0xFF0A3B73),
                               size: 20,
                             ),
                           ),
@@ -1047,14 +1058,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFDDEDE4)),
+                      border: Border.all(color: const Color(0xFFD0E1F4)),
                     ),
                     child: Column(
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                           decoration: const BoxDecoration(
-                            color: Color(0xFFEEFAF2),
+                            color: Color(0xFFEBF3FA),
                             borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
                           ),
                           child: const Row(
@@ -1063,7 +1074,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                 flex: 3,
                                 child: Text(
                                   'BRAND',
-                                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0C3A20)),
+                                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF061E36)),
                                 ),
                               ),
                               Expanded(
@@ -1071,7 +1082,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                 child: Text(
                                   'QUANTITY',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0C3A20)),
+                                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF061E36)),
                                 ),
                               ),
                               Expanded(
@@ -1079,7 +1090,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                 child: Text(
                                   'Min/Max (₹)',
                                   textAlign: TextAlign.right,
-                                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0C3A20)),
+                                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF061E36)),
                                 ),
                               ),
                             ],
@@ -1089,7 +1100,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: groupItems.length,
-                          separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF0F7F2)),
+                          separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEBF3FA)),
                           itemBuilder: (context, idx) {
                             final item = groupItems[idx];
                             return _buildRateTableRow(
@@ -1109,7 +1120,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF0C3A20),
+                        color: Color(0xFF061E36),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -1117,14 +1128,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFDDEDE4)),
+                        border: Border.all(color: const Color(0xFFD0E1F4)),
                       ),
                       child: Column(
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             decoration: const BoxDecoration(
-                              color: Color(0xFFEEFAF2),
+                              color: Color(0xFFEBF3FA),
                               borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
                             ),
                             child: const Row(
@@ -1133,7 +1144,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                   flex: 3,
                                   child: Text(
                                     'BRAND / QTY',
-                                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0C3A20)),
+                                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF061E36)),
                                   ),
                                 ),
                                 Expanded(
@@ -1141,7 +1152,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                   child: Text(
                                     'DATE & TIME',
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0C3A20)),
+                                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF061E36)),
                                   ),
                                 ),
                                 Expanded(
@@ -1149,7 +1160,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                   child: Text(
                                     'RATE (₹)',
                                     textAlign: TextAlign.right,
-                                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0C3A20)),
+                                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF061E36)),
                                   ),
                                 ),
                               ],
@@ -1159,7 +1170,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: allStocks.length,
-                            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF0F7F2)),
+                            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEBF3FA)),
                             itemBuilder: (context, idx) {
                               final stock = allStocks[idx];
                               final brand = stock.vendorProduct.isNotEmpty ? stock.vendorProduct : firstItem.vendorProduct;
@@ -1196,7 +1207,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFFEEFAF2),
+                                            color: const Color(0xFFEBF3FA),
                                             borderRadius: BorderRadius.circular(8),
                                           ),
                                           child: FittedBox(
@@ -1206,7 +1217,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                               style: const TextStyle(
                                                 fontSize: 12.5,
                                                 fontWeight: FontWeight.w900,
-                                                color: Color(0xFF0A4B26),
+                                                color: Color(0xFF0A3B73),
                                               ),
                                             ),
                                           ),
@@ -1260,10 +1271,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: const BoxDecoration(
-                            color: Color(0xFFDCF2E5),
+                            color: Color(0xFFEBF3FA),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF1B7A44)),
+                          child: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF0A3B73)),
                         ),
                       ),
                     ],
@@ -1283,8 +1294,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                               errorWidget: Container(
                                 width: 100,
                                 height: 100,
-                                color: const Color(0xFFF0F7F2),
-                                child: const Icon(Icons.opacity_rounded, size: 40, color: Color(0xFF1B7A44)),
+                                color: const Color(0xFFEBF3FA),
+                                child: const Icon(Icons.opacity_rounded, size: 40, color: Color(0xFF0A3B73)),
                               ),
                             ),
                           ),
@@ -1300,7 +1311,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                               style: const TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w900,
-                                color: Color(0xFF0C3A20),
+                                color: Color(0xFF061E36),
                                 height: 1.25,
                               ),
                             ),
@@ -1318,7 +1329,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFDCF2E5),
+                                  color: const Color(0xFFEBF3FA),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
@@ -1326,7 +1337,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                   style: const TextStyle(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1B7A44),
+                                    color: Color(0xFF0A3B73),
                                   ),
                                 ),
                               ),
@@ -1340,9 +1351,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEAF8F0),
+                      color: const Color(0xFFEBF3FA),
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFFC4E8D1)),
+                      border: Border.all(color: const Color(0xFFD0E1F4)),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1366,7 +1377,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                   style: const TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.w900,
-                                    color: Color(0xFF0A4B26),
+                                    color: Color(0xFF0A3B73),
                                   ),
                                 ),
                                 const SizedBox(width: 6),
@@ -1375,7 +1386,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                   style: TextStyle(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.bold,
-                                    color: isNegative ? const Color(0xFFE53935) : const Color(0xFF1B7A44),
+                                    color: isNegative ? const Color(0xFFE53935) : const Color(0xFF0A3B73),
                                   ),
                                 ),
                               ],
@@ -1383,18 +1394,18 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                             const SizedBox(height: 8),
                             Row(
                               children: [
-                                const Icon(Icons.calendar_today_rounded, size: 13, color: Color(0xFF1B7A44)),
+                                const Icon(Icons.calendar_today_rounded, size: 13, color: Color(0xFF0A3B73)),
                                 const SizedBox(width: 4),
                                 Text(
                                   item.vendorProductCreatedDate,
-                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF1B7A44)),
+                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0A3B73)),
                                 ),
                                 const SizedBox(width: 10),
-                                const Icon(Icons.access_time_rounded, size: 13, color: Color(0xFF1B7A44)),
+                                const Icon(Icons.access_time_rounded, size: 13, color: Color(0xFF0A3B73)),
                                 const SizedBox(width: 4),
                                 Text(
                                   item.vendorProductCreatedTime,
-                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF1B7A44)),
+                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0A3B73)),
                                 ),
                               ],
                             ),
@@ -1409,7 +1420,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                           child: const Icon(
                             Icons.show_chart_rounded,
                             size: 38,
-                            color: Color(0xFF1B7A44),
+                            color: Color(0xFF0A3B73),
                           ),
                         ),
                       ],
@@ -1418,14 +1429,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                   const SizedBox(height: 22),
                   const Row(
                     children: [
-                      Icon(Icons.bar_chart_rounded, color: Color(0xFF1B7A44), size: 22),
+                      Icon(Icons.bar_chart_rounded, color: Color(0xFF0A3B73), size: 22),
                       SizedBox(width: 8),
                       Text(
                         'Price History',
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFF0C3A20),
+                          color: Color(0xFF061E36),
                         ),
                       ),
                     ],
@@ -1450,14 +1461,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFDDEDE4)),
+                        border: Border.all(color: const Color(0xFFD0E1F4)),
                       ),
                       child: Column(
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             decoration: const BoxDecoration(
-                              color: Color(0xFFEEFAF2),
+                              color: Color(0xFFEBF3FA),
                               borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
                             ),
                             child: const Row(
@@ -1466,14 +1477,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                   flex: 2,
                                   child: Text(
                                     'Date',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0C3A20)),
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF061E36)),
                                   ),
                                 ),
                                 Expanded(
                                   flex: 2,
                                   child: Text(
                                     'Time',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0C3A20)),
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF061E36)),
                                   ),
                                 ),
                                 Expanded(
@@ -1481,7 +1492,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                   child: Text(
                                     'Price (₹)',
                                     textAlign: TextAlign.right,
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0C3A20)),
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF061E36)),
                                   ),
                                 ),
                               ],
@@ -1491,7 +1502,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: item.stocks.length,
-                            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF0F7F2)),
+                            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEBF3FA)),
                             itemBuilder: (context, idx) {
                               final stock = item.stocks[idx];
                               return Padding(
@@ -1520,7 +1531,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                         style: const TextStyle(
                                           fontSize: 13.5,
                                           fontWeight: FontWeight.w800,
-                                          color: Color(0xFF0C3A20),
+                                          color: Color(0xFF061E36),
                                         ),
                                       ),
                                     ),
@@ -1548,7 +1559,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
         height: 64,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF0A4B26), Color(0xFF1B7A44)],
+            colors: [Color(0xFF0A3B73), Color(0xFF155799)],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
@@ -1556,7 +1567,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
           border: Border.all(color: Colors.white.withValues(alpha: 0.18), width: 1.2),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF0A4B26).withValues(alpha: 0.35),
+              color: const Color(0xFF0A3B73).withValues(alpha: 0.35),
               blurRadius: 18,
               offset: const Offset(0, 6),
             ),
@@ -1613,386 +1624,191 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
           );
         }
 
-        // Group items by vendorId or vendorName
-        final Map<String, List<SpotRateItem>> groupedMap = {};
-        for (var item in filteredItems) {
-          final groupKey = item.vendorId != 0 ? '${item.vendorId}' : item.vendorName;
-          groupedMap.putIfAbsent(groupKey, () => []).add(item);
-        }
-
-        // Sort items inside each group by dateTime descending (latest first)
-        for (var list in groupedMap.values) {
-          list.sort((a, b) => b.dateTime.compareTo(a.dateTime));
-        }
-
-        final groupedList = groupedMap.values.toList();
-
-        return SingleChildScrollView(
+        return CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 90),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 12),
-              Padding(
+          slivers: [
+            const SliverToBoxAdapter(child: SizedBox(height: 12)),
+            SliverToBoxAdapter(
+              child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14.0),
                 child: _buildCategoryBannerSlider(),
               ),
-              const SizedBox(height: 14),
-              if (spotData != null && spotData.subCategories.isNotEmpty)
-                _buildSubCategoryChips(spotData.subCategories),
-              const SizedBox(height: 14),
-              if (filteredItems.isEmpty)
-                _buildEmptyState()
-              else
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                  itemCount: groupedList.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 14),
-                  itemBuilder: (context, index) {
-                    final groupItems = groupedList[index];
-                    return _buildSpotGroupCard(groupItems, spotData!);
-                  },
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 14)),
+            if (spotData != null && spotData.subCategories.isNotEmpty)
+              SliverToBoxAdapter(
+                child: _buildSubCategoryChips(spotData.subCategories),
+              ),
+            const SliverToBoxAdapter(child: SizedBox(height: 14)),
+            if (filteredItems.isEmpty)
+              SliverToBoxAdapter(child: _buildEmptyState())
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 90),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final item = filteredItems[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: _buildSpotItemCard(item, spotData!),
+                      );
+                    },
+                    childCount: filteredItems.length,
+                  ),
                 ),
-            ],
-          ),
+              ),
+          ],
         );
       },
     );
   }
 
-  Widget _buildSpotGroupCard(List<SpotRateItem> groupItems, SpotRateResponse spotData) {
-    // Show latest item first
-    final latestItem = groupItems.first;
-    final imgUrl = spotData.getFullSpotImageUrl(latestItem);
+  Widget _buildSpotItemCard(SpotRateItem item, SpotRateResponse spotData) {
+    final imgUrl = spotData.getFullSpotImageUrl(item);
 
-    // Rule: If group has > 1 data items, show View More button; if only 1 item, hide View More.
-    final bool showViewMore = groupItems.length > 1;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFDDEDE4), width: 1.1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 80,
-                height: 80,
-                child: Center(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
-                    child: AppCachedNetworkImage(
-                      imageUrl: imgUrl,
-                      fit: BoxFit.contain,
-                      errorWidget: Container(
-                        width: 76,
-                        height: 76,
-                        color: const Color(0xFFF0F7F2),
-                        child: const Center(
-                          child: Icon(Icons.grid_view_rounded, color: Color(0xFF1B7A44), size: 36),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      latestItem.vendorName,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF0C3A20),
-                        height: 1.2,
-                      ),
-                    ),
-                    if (latestItem.vendorSpotHeading.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        latestItem.vendorSpotHeading,
-                        style: const TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF1B7A44),
-                        ),
-                      ),
-                    ],
-                    if (latestItem.vendorSpotDetails.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        latestItem.vendorSpotDetails,
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey.shade700,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    if (latestItem.vendorProductRate.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        '₹ ${latestItem.vendorProductRate}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF0A4B26),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (showViewMore)
-                InkWell(
-                  onTap: () => _showSpotDetailModal(context, groupItems, spotData),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEEFAF2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'View More',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF1B7A44),
-                          ),
-                        ),
-                        Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF1B7A44)),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const Divider(height: 1, color: Color(0xFFEEFAF2)),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFF1B7A44)),
-              const SizedBox(width: 4),
-              Text(
-                AppDateFormatter.format(latestItem.vendorSpotCreatedDate),
-                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF4A5568)),
-              ),
-              const SizedBox(width: 8),
-              const Text('|', style: TextStyle(color: Colors.grey, fontSize: 11)),
-              const SizedBox(width: 8),
-              const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF1B7A44)),
-              const SizedBox(width: 4),
-              Text(
-                latestItem.vendorSpotCreatedTime,
-                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF4A5568)),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showSpotDetailModal(BuildContext context, List<SpotRateItem> groupItems, SpotRateResponse spotData) {
-    final latestItem = groupItems.first;
-    final imgUrl = spotData.getFullSpotImageUrl(latestItem);
-
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          backgroundColor: Colors.white,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-          child: SingleChildScrollView(
+    return RepaintBoundary(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFD0E1F4), width: 1.1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          child: InkWell(
+            onTap: () => _showSpotDetailModal(context, item, spotData),
+            borderRadius: BorderRadius.circular(20),
             child: Padding(
-              padding: const EdgeInsets.all(18.0),
+              padding: const EdgeInsets.all(16),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      InkWell(
-                        onTap: () => Navigator.of(context).pop(),
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFDCF2E5),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF1B7A44)),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
+                      // Dynamic vendor image with rate-card reference dimensions (shows actual rectangle/square without fixed cropping)
                       SizedBox(
-                        width: 85,
-                        height: 85,
+                        width: 80,
+                        height: 80,
                         child: Center(
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(14),
                             child: AppCachedNetworkImage(
                               imageUrl: imgUrl,
                               fit: BoxFit.contain,
                               errorWidget: Container(
-                                width: 85,
-                                height: 85,
-                                color: const Color(0xFFF0F7F2),
-                                child: const Icon(Icons.grid_view_rounded, size: 40, color: Color(0xFF1B7A44)),
+                                width: 80,
+                                height: 80,
+                                color: const Color(0xFFEBF3FA),
                               ),
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              latestItem.vendorName,
+                              item.vendorName.replaceAll('*', ''),
                               style: const TextStyle(
-                                fontSize: 18,
+                                fontSize: 15.5,
                                 fontWeight: FontWeight.w900,
-                                color: Color(0xFF0C3A20),
-                                height: 1.2,
+                                color: Color(0xFF061E36),
+                                height: 1.25,
                               ),
+                              softWrap: true,
                             ),
+                            if (item.vendorSpotHeading.isNotEmpty) ...[
+                              const SizedBox(height: 3),
+                              Text(
+                                item.vendorSpotHeading,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF0A3B73),
+                                  height: 1.25,
+                                ),
+                                softWrap: true,
+                              ),
+                            ],
+                            if (item.vendorProductRate.isNotEmpty) ...[
+                              const SizedBox(height: 3),
+                              Text(
+                                '₹ ${item.vendorProductRate}',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF0A3B73),
+                                ),
+                                softWrap: true,
+                              ),
+                            ],
                           ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 18),
-                  const Text(
-                    'History & Rate Updates',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF0C3A20),
+
+                  // Line-by-line Market Rates Preview (preserves each commodity and rate on new lines)
+                  if (item.vendorSpotDetails.isNotEmpty) ...[
+                    SpotRateCardLineDisplay(
+                      detailsText: item.vendorSpotDetails,
+                      heading: item.vendorSpotHeading,
                     ),
-                  ),
+                  ],
+
                   const SizedBox(height: 10),
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: groupItems.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 10),
-                    itemBuilder: (context, idx) {
-                      final item = groupItems[idx];
-                      return Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFAFDFA),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFFDDEDE4)),
+                  const Divider(height: 1, color: Color(0xFFEBF3FA)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFF0A3B73)),
+                      const SizedBox(width: 4),
+                      Text(
+                        AppDateFormatter.format(item.vendorSpotCreatedDate),
+                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF4A5568)),
+                      ),
+                      if (item.vendorSpotCreatedTime.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        const Text('|', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF0A3B73)),
+                        const SizedBox(width: 4),
+                        Text(
+                          item.vendorSpotCreatedTime,
+                          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF4A5568)),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    item.vendorSpotHeading,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w800,
-                                      color: Color(0xFF0C3A20),
-                                    ),
-                                  ),
-                                ),
-                                if (item.vendorProductRate.isNotEmpty)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEEFAF2),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      '₹ ${item.vendorProductRate}',
-                                      style: const TextStyle(
-                                        fontSize: 12.5,
-                                        fontWeight: FontWeight.w900,
-                                        color: Color(0xFF0A4B26),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            if (item.vendorSpotDetails.isNotEmpty) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                item.vendorSpotDetails,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF4A5568),
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFF1B7A44)),
-                                const SizedBox(width: 4),
-                                Text(
-                                  AppDateFormatter.format(item.vendorSpotCreatedDate),
-                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF4A5568)),
-                                ),
-                                const SizedBox(width: 8),
-                                const Text('|', style: TextStyle(color: Colors.grey, fontSize: 10)),
-                                const SizedBox(width: 8),
-                                const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF1B7A44)),
-                                const SizedBox(width: 4),
-                                Text(
-                                  item.vendorSpotCreatedTime,
-                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF4A5568)),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                      ],
+                    ],
                   ),
                 ],
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showSpotDetailModal(BuildContext context, SpotRateItem item, SpotRateResponse spotData) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return SpotMarketDetailDialog(
+          item: item,
+          spotData: spotData,
         );
       },
     );
@@ -2068,7 +1884,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFDDEDE4), width: 1.1),
+        border: Border.all(color: const Color(0xFFD0E1F4), width: 1.1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -2113,9 +1929,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                             errorWidget: Container(
                               width: 80,
                               height: 80,
-                              color: const Color(0xFFF0F7F2),
+                              color: const Color(0xFFEBF3FA),
                               child: const Center(
-                                child: Icon(Icons.newspaper_rounded, color: Color(0xFF1B7A44), size: 36),
+                                child: Icon(Icons.newspaper_rounded, color: Color(0xFF0A3B73), size: 36),
                               ),
                             ),
                           ),
@@ -2132,7 +1948,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w900,
-                              color: Color(0xFF0C3A20),
+                              color: Color(0xFF061E36),
                               height: 1.25,
                             ),
                             maxLines: 2,
@@ -2158,14 +1974,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                const Divider(height: 1, color: Color(0xFFEEFAF2)),
+                const Divider(height: 1, color: Color(0xFFEBF3FA)),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.calendar_today_rounded, size: 13, color: Color(0xFF1B7A44)),
+                        const Icon(Icons.calendar_today_rounded, size: 13, color: Color(0xFF0A3B73)),
                         const SizedBox(width: 5),
                         Text(
                           AppDateFormatter.format(item.newsCreatedDate),
@@ -2179,7 +1995,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                           const SizedBox(width: 8),
                           const Text('|', style: TextStyle(color: Colors.grey, fontSize: 11)),
                           const SizedBox(width: 8),
-                          const Icon(Icons.access_time_rounded, size: 13, color: Color(0xFF1B7A44)),
+                          const Icon(Icons.access_time_rounded, size: 13, color: Color(0xFF0A3B73)),
                           const SizedBox(width: 4),
                           Text(
                             item.newsCreatedTime,
@@ -2200,10 +2016,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF1B7A44),
+                            color: Color(0xFF0A3B73),
                           ),
                         ),
-                        Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF1B7A44)),
+                        Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF0A3B73)),
                       ],
                     ),
                   ],
@@ -2250,7 +2066,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
             Icon(
               icon,
               size: 20,
-              color: isSelected ? const Color(0xFF0A4B26) : Colors.white.withValues(alpha: 0.85),
+              color: isSelected ? const Color(0xFF0A3B73) : Colors.white.withValues(alpha: 0.85),
             ),
             const SizedBox(height: 2),
             Text(
@@ -2258,7 +2074,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
               style: TextStyle(
                 fontSize: 11.5,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                color: isSelected ? const Color(0xFF0A4B26) : Colors.white.withValues(alpha: 0.85),
+                color: isSelected ? const Color(0xFF0A3B73) : Colors.white.withValues(alpha: 0.85),
               ),
             ),
           ],
@@ -2277,13 +2093,13 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
           Container(
             padding: const EdgeInsets.all(22),
             decoration: const BoxDecoration(
-              color: Color(0xFFDCF2E5),
+              color: Color(0xFFEBF3FA),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.sentiment_dissatisfied_rounded,
               size: 50,
-              color: Color(0xFF1B7A44),
+              color: Color(0xFF0A3B73),
             ),
           ),
           const SizedBox(height: 18),
@@ -2292,7 +2108,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w900,
-              color: Color(0xFF0C3A20),
+              color: Color(0xFF061E36),
             ),
           ),
           const SizedBox(height: 8),
@@ -2307,7 +2123,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
             icon: const Icon(Icons.refresh_rounded, size: 18),
             label: const Text('Refresh'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1B7A44),
+              backgroundColor: const Color(0xFF0A3B73),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -2328,7 +2144,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFDDEDE4)),
+          border: Border.all(color: const Color(0xFFD0E1F4)),
         ),
       ),
     );
@@ -2354,7 +2170,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1B7A44),
+                backgroundColor: const Color(0xFF0A3B73),
                 foregroundColor: Colors.white,
               ),
             ),
@@ -2477,8 +2293,8 @@ class _CategoryBannerSliderState extends State<_CategoryBannerSlider> {
                       height: 7,
                       decoration: BoxDecoration(
                         color: dotIndex == _currentIndex
-                            ? const Color(0xFF1B7A44)
-                            : const Color(0xFFBDD9C8),
+                            ? const Color(0xFF0A3B73)
+                            : const Color(0xFFD0E1F4),
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),

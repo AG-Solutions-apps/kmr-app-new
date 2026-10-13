@@ -180,7 +180,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF0FDF4),
+        color: const Color(0xFFF0F5FA),
         borderRadius: BorderRadius.circular(30),
       ),
       child: TextFormField(
@@ -192,7 +192,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         style: GoogleFonts.poppins(
           fontSize: 15,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF0F291E),
+          color: const Color(0xFF061E36),
         ),
         validator: validator,
         decoration: InputDecoration(
@@ -206,7 +206,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, color: const Color(0xFF0F291E), size: 20),
+                Icon(icon, color: const Color(0xFF061E36), size: 20),
                 const SizedBox(width: 10),
                 Container(
                   width: 1.2,
@@ -216,19 +216,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ],
             ),
           ),
-          fillColor: const Color(0xFFF0FDF4),
+          fillColor: const Color(0xFFF0F5FA),
           filled: true,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30),
-            borderSide: const BorderSide(color: Color(0xFFA7F3D0), width: 1.5),
+            borderSide: const BorderSide(color: Color(0xFFD0E1F4), width: 1.5),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30),
-            borderSide: const BorderSide(color: Color(0xFFA7F3D0), width: 1.5),
+            borderSide: const BorderSide(color: Color(0xFFD0E1F4), width: 1.5),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30),
-            borderSide: const BorderSide(color: Color(0xFF059669), width: 2),
+            borderSide: const BorderSide(color: Color(0xFF0A3B73), width: 2),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30),
@@ -312,7 +312,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF059669),
+                            color: const Color(0xFF0A3B73),
                             letterSpacing: 2.8,
                           ),
                         ),
@@ -327,7 +327,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 style: GoogleFonts.poppins(
                                   fontSize: 26,
                                   fontWeight: FontWeight.w800,
-                                  color: const Color(0xFF0F291E),
+                                  color: const Color(0xFF061E36),
                                   height: 1.2,
                                 ),
                               ),
@@ -336,7 +336,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 style: GoogleFonts.poppins(
                                   fontSize: 26,
                                   fontWeight: FontWeight.w800,
-                                  color: const Color(0xFF00B050),
+                                  color: const Color(0xFF155799),
                                   height: 1.2,
                                 ),
                               ),
@@ -345,7 +345,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 style: GoogleFonts.poppins(
                                   fontSize: 26,
                                   fontWeight: FontWeight.w800,
-                                  color: const Color(0xFF0F291E),
+                                  color: const Color(0xFF061E36),
                                   height: 1.2,
                                 ),
                               ),
@@ -444,15 +444,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     borderRadius: BorderRadius.circular(30),
                                     gradient: const LinearGradient(
                                       colors: [
-                                        Color(0xFF059669),
-                                        Color(0xFF00B050),
+                                        Color(0xFF0A3B73),
+                                        Color(0xFF155799),
                                       ],
                                       begin: Alignment.centerLeft,
                                       end: Alignment.centerRight,
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xFF00B050).withValues(alpha: 0.3),
+                                        color: const Color(0xFF155799).withValues(alpha: 0.3),
                                         blurRadius: 12,
                                         offset: const Offset(0, 4),
                                       ),

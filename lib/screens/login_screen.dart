@@ -155,12 +155,12 @@ class _LoginScreenState extends State<LoginScreen> {
             color: isError ? const Color(0xFFFFEBEE) : const Color(0xFFECFDF5),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: isError ? const Color(0xFFFFCDD2) : const Color(0xFFA7F3D0),
+              color: isError ? const Color(0xFFFFCDD2) : const Color(0xFFD0E1F4),
               width: 1.2,
             ),
             boxShadow: [
               BoxShadow(
-                color: (isError ? Colors.red : const Color(0xFF047857))
+                color: (isError ? Colors.red : const Color(0xFF0A3B73))
                     .withValues(alpha: 0.12),
                 blurRadius: 20,
                 spreadRadius: 2,
@@ -176,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 38,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isError ? const Color(0xFFD32F2F) : const Color(0xFF047857),
+                  color: isError ? const Color(0xFFD32F2F) : const Color(0xFF0A3B73),
                 ),
                 child: Icon(
                   isError ? Icons.close_rounded : Icons.check_rounded,
@@ -207,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         fontSize: 13,
                         color: isError
                             ? const Color(0xFFC62828)
-                            : const Color(0xFF047857),
+                            : const Color(0xFF0A3B73),
                       ),
                     ),
                   ],
@@ -535,7 +535,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 style: GoogleFonts.poppins(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF059669),
+                                  color: const Color(0xFF0A3B73),
                                   letterSpacing: 2.8,
                                 ),
                               ),
@@ -549,7 +549,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       style: GoogleFonts.poppins(
                                         fontSize: 26,
                                         fontWeight: FontWeight.w800,
-                                        color: const Color(0xFF0F291E),
+                                        color: const Color(0xFF061E36),
                                         height: 1.2,
                                       ),
                                     ),
@@ -558,7 +558,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       style: GoogleFonts.poppins(
                                         fontSize: 26,
                                         fontWeight: FontWeight.w800,
-                                        color: const Color(0xFF00B050),
+                                        color: const Color(0xFF0A3B73),
                                         height: 1.2,
                                       ),
                                     ),
@@ -567,7 +567,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       style: GoogleFonts.poppins(
                                         fontSize: 26,
                                         fontWeight: FontWeight.w800,
-                                        color: const Color(0xFF0F291E),
+                                        color: const Color(0xFF061E36),
                                         height: 1.2,
                                       ),
                                     ),
@@ -595,7 +595,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   borderRadius: BorderRadius.circular(30),
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFF0FDF4),
+                                      color: const Color(0xFFF0F5FA),
                                       borderRadius: BorderRadius.circular(30),
                                     ),
                                     child: TextField(
@@ -606,7 +606,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       style: GoogleFonts.poppins(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
-                                        color: const Color(0xFF0F291E),
+                                        color: const Color(0xFF061E36),
                                       ),
                                       decoration: InputDecoration(
                                         hintText: 'Enter User Id here...',
@@ -618,7 +618,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             const SizedBox(width: 16),
-                                            const Icon(Icons.person, color: Color(0xFF0F291E), size: 22),
+                                            const Icon(Icons.person, color: Color(0xFF061E36), size: 22),
                                             const SizedBox(width: 12),
                                             Container(
                                               width: 1.2,
@@ -628,19 +628,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                             const SizedBox(width: 12),
                                           ],
                                         ),
-                                        fillColor: const Color(0xFFF0FDF4),
+                                        fillColor: const Color(0xFFF0F5FA),
                                         filled: true,
                                         border: OutlineInputBorder(
                                           borderRadius: BorderRadius.circular(30),
-                                          borderSide: const BorderSide(color: Color(0xFFA7F3D0), width: 1.5),
+                                          borderSide: const BorderSide(color: Color(0xFFD0E1F4), width: 1.5),
                                         ),
                                         enabledBorder: OutlineInputBorder(
                                           borderRadius: BorderRadius.circular(30),
-                                          borderSide: const BorderSide(color: Color(0xFFA7F3D0), width: 1.5),
+                                          borderSide: const BorderSide(color: Color(0xFFD0E1F4), width: 1.5),
                                         ),
                                         focusedBorder: OutlineInputBorder(
                                           borderRadius: BorderRadius.circular(30),
-                                          borderSide: const BorderSide(color: Color(0xFF059669), width: 2),
+                                          borderSide: const BorderSide(color: Color(0xFF0A3B73), width: 2),
                                         ),
                                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                                         counterText: '',
@@ -658,9 +658,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                       height: 24,
                                       child: Checkbox(
                                         value: _agreeTerms,
-                                        activeColor: const Color(0xFF059669),
+                                        activeColor: const Color(0xFF0A3B73),
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                                        side: const BorderSide(color: Color(0xFF0F291E), width: 1.5),
+                                        side: const BorderSide(color: Color(0xFF061E36), width: 1.5),
                                         onChanged: _isLoading
                                             ? null
                                             : (value) {
@@ -684,9 +684,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                                style: GoogleFonts.poppins(
                                                  fontSize: 12,
                                                  fontWeight: FontWeight.w600,
-                                                 color: const Color(0xFF059669),
+                                                 color: const Color(0xFF0A3B73),
                                                  decoration: TextDecoration.underline,
-                                                 decorationColor: const Color(0xFF059669),
+                                                 decorationColor: const Color(0xFF0A3B73),
                                                ),
                                                recognizer: TapGestureRecognizer()
                                                  ..onTap = () => _launchWebUrl(_termsUrl),
@@ -700,9 +700,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                                style: GoogleFonts.poppins(
                                                  fontSize: 12,
                                                  fontWeight: FontWeight.w600,
-                                                 color: const Color(0xFF059669),
+                                                 color: const Color(0xFF0A3B73),
                                                  decoration: TextDecoration.underline,
-                                                 decorationColor: const Color(0xFF059669),
+                                                 decorationColor: const Color(0xFF0A3B73),
                                                ),
                                                recognizer: TapGestureRecognizer()
                                                  ..onTap = () => _launchWebUrl(_privacyUrl),
@@ -734,16 +734,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                         style: GoogleFonts.poppins(
                                           fontSize: 22,
                                           fontWeight: FontWeight.bold,
-                                          color: const Color(0xFF047857),
+                                          color: const Color(0xFF0A3B73),
                                         ),
                                         decoration: InputDecoration(
                                           counterText: '',
                                           contentPadding: EdgeInsets.zero,
-                                          fillColor: const Color(0xFFF0FDF4),
+                                          fillColor: const Color(0xFFF0F5FA),
                                           filled: true,
-                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFA7F3D0))),
-                                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFA7F3D0))),
-                                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF047857), width: 2)),
+                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFD0E1F4))),
+                                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFD0E1F4))),
+                                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0A3B73), width: 2)),
                                         ),
                                         onChanged: (value) {
                                           if (value.isNotEmpty) {
@@ -775,14 +775,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: (_agreeTerms || _isOtpSent)
-                                        ? [const Color(0xFF15803D), const Color(0xFF047857), const Color(0xFF064E3B)]
+                                        ? [const Color(0xFF155799), const Color(0xFF0A3B73), const Color(0xFF052342)]
                                         : [Colors.grey.shade400, Colors.grey.shade500],
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,
                                   ),
                                   borderRadius: BorderRadius.circular(30),
                                   boxShadow: (_agreeTerms || _isOtpSent)
-                                      ? [BoxShadow(color: const Color(0xFF047857).withValues(alpha: 0.45), blurRadius: 20, offset: const Offset(0, 7))]
+                                      ? [BoxShadow(color: const Color(0xFF0A3B73).withValues(alpha: 0.45), blurRadius: 20, offset: const Offset(0, 7))]
                                       : [],
                                 ),
                                 child: Material(
@@ -824,9 +824,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     TextButton.icon(
-                                      icon: const Icon(Icons.edit, size: 15, color: Color(0xFF047857)),
+                                      icon: const Icon(Icons.edit, size: 15, color: Color(0xFF0A3B73)),
                                       label: Text('Change Number',
-                                          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF047857), fontWeight: FontWeight.w600)),
+                                          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF0A3B73), fontWeight: FontWeight.w600)),
                                       onPressed: () {
                                         setState(() {
                                           _isOtpSent = false;
@@ -838,9 +838,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                       },
                                     ),
                                     TextButton.icon(
-                                      icon: const Icon(Icons.refresh, size: 15, color: Color(0xFF047857)),
+                                      icon: const Icon(Icons.refresh, size: 15, color: Color(0xFF0A3B73)),
                                       label: Text('Resend OTP',
-                                          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF047857), fontWeight: FontWeight.w600)),
+                                          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF0A3B73), fontWeight: FontWeight.w600)),
                                       onPressed: () {
                                         _clearOtpBoxes();
                                         _handleCheckMobileAndSendOtp();
@@ -976,12 +976,12 @@ class _MarqueeBadgesState extends State<_MarqueeBadges>
           color: Colors.white.withValues(alpha: 0.94),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: const Color(0xFFA7F3D0),
+            color: const Color(0xFFD0E1F4),
             width: 1.2,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF047857).withValues(
+              color: const Color(0xFF0A3B73).withValues(
                 alpha: 0.08,
               ),
               blurRadius: 10,
@@ -999,7 +999,7 @@ class _MarqueeBadgesState extends State<_MarqueeBadges>
               Icon(
                 badge.icon,
                 size: 17,
-                color: const Color(0xFF059669),
+                color: const Color(0xFF0A3B73),
               ),
 
               const SizedBox(width: 7),
@@ -1012,7 +1012,7 @@ class _MarqueeBadgesState extends State<_MarqueeBadges>
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F291E),
+                    color: const Color(0xFF061E36),
                   ),
                 ),
               ),
