@@ -92,13 +92,13 @@ class NewsDetailScreen extends StatelessWidget {
     final titleCategory = newsItem.categoriesName.isNotEmpty ? newsItem.categoriesName : categoryName;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4FAF6),
+      backgroundColor: const Color(0xFFF0F5FA),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60.0),
         child: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF0A4B26), Color(0xFF1B7A44)],
+              colors: [Color(0xFF0A3B73), Color(0xFF155799)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -175,9 +175,9 @@ class NewsDetailScreen extends StatelessWidget {
                   maxHeight: 480,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEEFAF2),
+                  color: const Color(0xFFEBF3FA),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFDDEDE4), width: 1),
+                  border: Border.all(color: const Color(0xFFD0E1F4), width: 1),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.08),
@@ -193,12 +193,12 @@ class NewsDetailScreen extends StatelessWidget {
                     fit: BoxFit.contain,
                     errorWidget: Container(
                       height: 200,
-                      color: const Color(0xFFDCF2E5),
+                      color: const Color(0xFFD0E1F4),
                       child: const Center(
                         child: Icon(
                           Icons.newspaper_rounded,
                           size: 60,
-                          color: Color(0xFF1B7A44),
+                          color: Color(0xFF0A3B73),
                         ),
                       ),
                     ),
@@ -215,7 +215,7 @@ class NewsDetailScreen extends StatelessWidget {
                 const Icon(
                   Icons.calendar_today_rounded,
                   size: 14,
-                  color: Color(0xFF1B7A44),
+                  color: Color(0xFF0A3B73),
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -223,7 +223,7 @@ class NewsDetailScreen extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1B7A44),
+                    color: Color(0xFF0A3B73),
                   ),
                 ),
                 if (newsItem.newsCreatedTime.isNotEmpty) ...[
@@ -233,7 +233,7 @@ class NewsDetailScreen extends StatelessWidget {
                   const Icon(
                     Icons.access_time_rounded,
                     size: 14,
-                    color: Color(0xFF1B7A44),
+                    color: Color(0xFF0A3B73),
                   ),
                   const SizedBox(width: 4),
                   Text(
@@ -241,7 +241,7 @@ class NewsDetailScreen extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF1B7A44),
+                      color: Color(0xFF0A3B73),
                     ),
                   ),
                 ],
@@ -256,7 +256,7 @@ class NewsDetailScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFFDDEDE4), width: 1.1),
+                border: Border.all(color: const Color(0xFFD0E1F4), width: 1.1),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.04),
@@ -274,13 +274,13 @@ class NewsDetailScreen extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 17.5,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF0C3A20),
+                      color: Color(0xFF061E36),
                       height: 1.3,
                       letterSpacing: 0.2,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Divider(color: Color(0xFFEEFAF2), height: 1, thickness: 1.2),
+                  const Divider(color: Color(0xFFEBF3FA), height: 1, thickness: 1.2),
                   const SizedBox(height: 14),
 
                   // Details Body Text
@@ -297,7 +297,7 @@ class NewsDetailScreen extends StatelessWidget {
                   // Attachment Button for news_other_image if present
                   if (otherAttachmentUrl != null) ...[
                     const SizedBox(height: 22),
-                    const Divider(color: Color(0xFFEEFAF2), height: 1),
+                    const Divider(color: Color(0xFFEBF3FA), height: 1),
                     const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
@@ -316,7 +316,7 @@ class NewsDetailScreen extends StatelessWidget {
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1B7A44),
+                          backgroundColor: const Color(0xFF0A3B73),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           elevation: 1,

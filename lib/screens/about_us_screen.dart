@@ -66,13 +66,13 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
     final place = _companyData?['company_place']?.toString() ?? 'Bangalore';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4FAF6),
+      backgroundColor: const Color(0xFFF0F5FA),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60.0),
         child: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF0A4B26), Color(0xFF1B7A44)],
+              colors: [Color(0xFF0A3B73), Color(0xFF155799)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -125,7 +125,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
       body: SafeArea(
         child: _isLoading
             ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF1B7A44)),
+                child: CircularProgressIndicator(color: Color(0xFF0A3B73)),
               )
             : SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
@@ -138,7 +138,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: const Color(0xFFDDEDE4), width: 1.1),
+                        border: Border.all(color: const Color(0xFFD0E1F4), width: 1.1),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.05),
@@ -153,7 +153,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF9FCFA),
+                              color: const Color(0xFFF0F5FA),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Image.asset(
@@ -170,7 +170,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.w900,
-                              color: Color(0xFF0C3A20),
+                              color: Color(0xFF061E36),
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -231,7 +231,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFF0C3A20),
+                          color: Color(0xFF061E36),
                           letterSpacing: 1.1,
                         ),
                       ),
@@ -240,8 +240,8 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                     // ADDRESS CARD
                     _buildSimpleCard(
                       icon: Icons.location_on_rounded,
-                      iconBg: const Color(0xFFDCF2E5),
-                      iconColor: const Color(0xFF1B7A44),
+                      iconBg: const Color(0xFFD0E1F4),
+                      iconColor: const Color(0xFF0A3B73),
                       title: 'Head Office Address',
                       content: address,
                       badgeText: place,
@@ -255,7 +255,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: const Color(0xFFDDEDE4), width: 1.1),
+                        border: Border.all(color: const Color(0xFFD0E1F4), width: 1.1),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.04),
@@ -288,7 +288,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                                       style: TextStyle(
                                         fontSize: 15.5,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0C3A20),
+                                        color: Color(0xFF061E36),
                                       ),
                                     ),
                                     Text(
@@ -301,7 +301,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                             ],
                           ),
                           const SizedBox(height: 14),
-                          const Divider(height: 1, color: Color(0xFFEEFAF2)),
+                          const Divider(height: 1, color: Color(0xFFEBF3FA)),
                           const SizedBox(height: 12),
 
                           // Mobile 1
@@ -382,7 +382,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFDDEDE4), width: 1.1),
+        border: Border.all(color: const Color(0xFFD0E1F4), width: 1.1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -415,7 +415,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                       style: const TextStyle(
                         fontSize: 15.5,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0C3A20),
+                        color: Color(0xFF061E36),
                       ),
                     ),
                     if (badgeText != null)
@@ -424,7 +424,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                         style: const TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF1B7A44),
+                          color: Color(0xFF0A3B73),
                         ),
                       ),
                   ],
@@ -470,13 +470,13 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF0C3A20),
+                  color: Color(0xFF061E36),
                 ),
               ),
             ],
           ),
           Material(
-            color: const Color(0xFF1B7A44),
+            color: const Color(0xFF0A3B73),
             borderRadius: BorderRadius.circular(20),
             child: InkWell(
               onTap: () => _makePhoneCall(phoneNumber),

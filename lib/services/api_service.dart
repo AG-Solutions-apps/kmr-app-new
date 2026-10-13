@@ -89,19 +89,35 @@ class ApiService {
     );
   }
 
-  /// Fetch Spot Rates for a specific category ID
-  Future<SpotRateResponse> fetchAppSpot(int categoryId, {String? token}) async {
+  static final Map<int, SpotRateResponse> _spotRatesCache = {};
+  static final Map<int, DateTime> _spotRatesCacheTime = {};
+
+  /// Fetch Spot Rates for a specific category ID (with in-memory cache for ultra-fast tab switches)
+  Future<SpotRateResponse> fetchAppSpot(int categoryId, {String? token, bool forceRefresh = false}) async {
+    final now = DateTime.now();
+    if (!forceRefresh && _spotRatesCache.containsKey(categoryId)) {
+      final cachedTime = _spotRatesCacheTime[categoryId];
+      if (cachedTime != null && now.difference(cachedTime) < const Duration(minutes: 2)) {
+        return _spotRatesCache[categoryId]!;
+      }
+    }
+
     final endpoint = '${ApiConstants.appSpot}/$categoryId';
     final jsonResponse = await get(endpoint, token: token);
+    SpotRateResponse response;
     if (jsonResponse is Map<String, dynamic>) {
-      return SpotRateResponse.fromJson(jsonResponse);
+      response = SpotRateResponse.fromJson(jsonResponse);
     } else if (jsonResponse is Map) {
-      return SpotRateResponse.fromJson(Map<String, dynamic>.from(jsonResponse));
+      response = SpotRateResponse.fromJson(Map<String, dynamic>.from(jsonResponse));
+    } else {
+      throw ApiException(
+        statusCode: 500,
+        message: 'Invalid response format received from spot rates endpoint',
+      );
     }
-    throw ApiException(
-      statusCode: 500,
-      message: 'Invalid response format received from spot rates endpoint',
-    );
+    _spotRatesCache[categoryId] = response;
+    _spotRatesCacheTime[categoryId] = now;
+    return response;
   }
 
   /// Fetch News for a specific category ID

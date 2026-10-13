@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:in_app_update/in_app_update.dart';
@@ -23,7 +22,7 @@ class AppUpdateService {
   static String? _packageName;
 
   /// Main entry point to check and prompt for app update on app launch
-  static Future<void> checkForUpdate(BuildContext context, {bool forceCheck = false, bool enableDebugFallback = true}) async {
+  static Future<void> checkForUpdate(BuildContext context, {bool forceCheck = false, bool enableDebugFallback = false}) async {
     // If user already dismissed during this session and not forced, skip prompt
     if (_hasDismissedThisSession && !forceCheck) {
       debugPrint('[AppUpdateService] Update prompt skipped: User dismissed update during current session.');
@@ -43,18 +42,24 @@ class AppUpdateService {
           final updateInfo = await InAppUpdate.checkForUpdate();
 
           if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
-            showUpdate = true;
-            isImmediate = updateInfo.immediateUpdateAllowed;
+            final currentVersionCode = int.tryParse(packageInfo.buildNumber) ?? 0;
+            final availableVersionCode = updateInfo.availableVersionCode ?? 0;
+
+            // Only show update if store version code is strictly higher than currently installed version!
+            if (availableVersionCode > 0 && currentVersionCode > 0 && currentVersionCode >= availableVersionCode) {
+              debugPrint('[AppUpdateService] App is already on latest build ($currentVersionCode >= $availableVersionCode). No update needed.');
+              showUpdate = false;
+            } else {
+              showUpdate = true;
+              isImmediate = updateInfo.immediateUpdateAllowed;
+            }
           } else {
             debugPrint('[AppUpdateService] Play Store reports app is up to date.');
           }
         } catch (playError) {
-          debugPrint('[AppUpdateService] Play Store API notice (Debug/Sideloaded build): $playError');
-          // In debug builds or sideloaded APKs, Play Store API will throw error.
-          // Enable fallback popup demonstration if configured
-          if (kDebugMode && enableDebugFallback && !forceCheck) {
-            showUpdate = true;
-          }
+          debugPrint('[AppUpdateService] Play Store API notice: $playError');
+          // Do not show update dialog on error or if sideloaded/debug
+          showUpdate = false;
         }
 
         if (showUpdate && context.mounted) {
@@ -95,13 +100,13 @@ class AppUpdateService {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF0FDF4),
+                      color: const Color(0xFFF0F5FA),
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFA7F3D0), width: 1.5),
+                      border: Border.all(color: const Color(0xFFD0E1F4), width: 1.5),
                     ),
                     child: const Icon(
                       Icons.system_update_rounded,
-                      color: Color(0xFF059669),
+                      color: Color(0xFF0A3B73),
                       size: 32,
                     ),
                   ),
@@ -114,7 +119,7 @@ class AppUpdateService {
                     style: GoogleFonts.poppins(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F291E),
+                      color: const Color(0xFF061E36),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -136,21 +141,21 @@ class AppUpdateService {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECFDF5),
+                      color: const Color(0xFFEBF3FA),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFA7F3D0)),
+                      border: Border.all(color: const Color(0xFFD0E1F4)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.stars_rounded, size: 16, color: Color(0xFF059669)),
+                        const Icon(Icons.stars_rounded, size: 16, color: Color(0xFF0A3B73)),
                         const SizedBox(width: 6),
                         Text(
                           'Latest Store Build Available',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF047857),
+                            color: const Color(0xFF0A3B73),
                           ),
                         ),
                       ],
@@ -194,14 +199,14 @@ class AppUpdateService {
                         child: Container(
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFF15803D), Color(0xFF047857), Color(0xFF064E3B)],
+                              colors: [Color(0xFF155799), Color(0xFF0A3B73), Color(0xFF052342)],
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                             ),
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF047857).withValues(alpha: 0.3),
+                                color: const Color(0xFF0A3B73).withValues(alpha: 0.3),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),

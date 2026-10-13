@@ -49,7 +49,7 @@ class AppCachedNetworkImage extends StatelessWidget {
                 height: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0A4B26)),
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0A3B73)),
                 ),
               ),
             ),

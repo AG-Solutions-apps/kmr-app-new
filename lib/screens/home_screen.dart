@@ -128,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-              backgroundColor: const Color(0xFF0A4B26),
+              backgroundColor: const Color(0xFF0A3B73),
               duration: const Duration(seconds: 2),
               behavior: SnackBarBehavior.floating,
               margin: const EdgeInsets.all(16),
@@ -192,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w900,
-                                color: Color(0xFF0C3A20),
+                                color: Color(0xFF061E36),
                                 letterSpacing: 1.2,
                               ),
                             ),
@@ -237,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF0A4B26), Color(0xFF1B7A44)],
+            colors: [Color(0xFF0A3B73), Color(0xFF155799)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -346,7 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: const Icon(Icons.refresh_rounded, size: 16),
                   label: const Text('Retry'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1B7A44),
+                    backgroundColor: const Color(0xFF0A3B73),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -423,7 +423,7 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFDDEDE4), width: 1),
+          border: Border.all(color: const Color(0xFFD0E1F4), width: 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
@@ -455,7 +455,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Icon(
                             Icons.category_rounded,
                             size: 38,
-                            color: Color(0xFF1B7A44),
+                            color: Color(0xFF0A3B73),
                           ),
                         ),
                       ),
@@ -474,7 +474,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF0C3A20),
+                  color: Color(0xFF061E36),
                   height: 1.2,
                 ),
               ),
@@ -490,7 +490,7 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFDDEDE4)),
+        border: Border.all(color: const Color(0xFFD0E1F4)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -522,11 +522,11 @@ class _HomeScreenState extends State<HomeScreen> {
   // ============================================================
   Widget _buildSubscriptionCard(UserStatusData statusData) {
     final bool isExpired = statusData.isExpired || statusData.daysRemaining < 0;
-    final cardBgColor = isExpired ? const Color(0xFFFDE8E8) : const Color(0xFFDCF2E5);
-    final borderColor = isExpired ? const Color(0xFFF8B4B4) : const Color(0xFFBDD9C8);
-    final primaryTextColor = isExpired ? const Color(0xFF9B1C1C) : const Color(0xFF0C3A20);
-    final secondaryTextColor = isExpired ? const Color(0xFFC81E1E) : const Color(0xFF1B7A44);
-    final buttonBgColor = isExpired ? const Color(0xFFC81E1E) : const Color(0xFF0A4B26);
+    final cardBgColor = isExpired ? const Color(0xFFFDE8E8) : const Color(0xFFEBF3FA);
+    final borderColor = isExpired ? const Color(0xFFF8B4B4) : const Color(0xFFD0E1F4);
+    final primaryTextColor = isExpired ? const Color(0xFF9B1C1C) : const Color(0xFF061E36);
+    final secondaryTextColor = isExpired ? const Color(0xFFC81E1E) : const Color(0xFF0A3B73);
+    final buttonBgColor = isExpired ? const Color(0xFFC81E1E) : const Color(0xFF0A3B73);
 
     return Container(
       width: double.infinity,
@@ -660,7 +660,7 @@ class _HomeScreenState extends State<HomeScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
             decoration: BoxDecoration(
-              color: isExpired ? Colors.white.withValues(alpha: 0.7) : const Color(0xFFEEFAF2),
+              color: isExpired ? Colors.white.withValues(alpha: 0.7) : const Color(0xFFEBF3FA),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -734,7 +734,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFFFFFF), Color(0xFFF4FAF6), Color(0xFFD9F4E3)],
+            colors: [Color(0xFFFFFFFF), Color(0xFFF0F5FA), Color(0xFFE1EDF9)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -753,7 +753,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       fit: BoxFit.contain,
                     ),
                     const SizedBox(height: 14),
-                    const Divider(color: Color(0xFFB0D9C0), height: 1),
+                    const Divider(color: Color(0xFFD0E1F4), height: 1),
                   ],
                 ),
               ),
@@ -874,7 +874,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF0C3A20),
+                  color: Color(0xFF061E36),
                 ),
               ),
             ],
@@ -916,7 +916,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(
-        child: CircularProgressIndicator(color: Color(0xFF1B7A44)),
+        child: CircularProgressIndicator(color: Color(0xFF0A3B73)),
       ),
     );
 
@@ -956,7 +956,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFDCF2E5) : Colors.transparent,
+        color: isSelected ? const Color(0xFFD0E1F4) : Colors.transparent,
         borderRadius: BorderRadius.circular(30),
       ),
       child: ListTile(
@@ -964,11 +964,11 @@ class _HomeScreenState extends State<HomeScreen> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         leading: CircleAvatar(
           radius: 19,
-          backgroundColor: isSelected ? Colors.white : const Color(0xFFE5F5EC),
+          backgroundColor: isSelected ? Colors.white : const Color(0xFFEBF3FA),
           child: Icon(
             icon,
             size: 20,
-            color: isLogout ? Colors.red.shade700 : const Color(0xFF0C3A20),
+            color: isLogout ? Colors.red.shade700 : const Color(0xFF061E36),
           ),
         ),
         title: Text(
@@ -976,7 +976,7 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(
             fontSize: 14.5,
             fontWeight: FontWeight.w700,
-            color: isLogout ? Colors.red.shade700 : const Color(0xFF0C3A20),
+            color: isLogout ? Colors.red.shade700 : const Color(0xFF061E36),
           ),
         ),
         onTap: onTap,
@@ -1147,7 +1147,7 @@ class _HomeBannerSliderState extends State<_HomeBannerSlider> {
                     height: 7,
                     decoration: BoxDecoration(
                       color: dotIndex == _currentIndex
-                          ? const Color(0xFF1B7A44)
+                          ? const Color(0xFF0A3B73)
                           : const Color(0xFFBDD9C8),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -1172,7 +1172,7 @@ class _HomeBannerSliderState extends State<_HomeBannerSlider> {
         child: SizedBox(
           width: 28,
           height: 28,
-          child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF1B7A44)),
+          child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF0A3B73)),
         ),
       ),
     );
@@ -1265,7 +1265,7 @@ class _BottomSolidColorBar extends StatelessWidget {
     return Container(
       height: 50,
       width: double.infinity,
-      color: const Color(0xFF0A4B26),
+      color: const Color(0xFF0A3B73),
     );
   }
 }
@@ -1299,7 +1299,15 @@ class _DrawerVersionFooterState extends State<_DrawerVersionFooter> {
       if (Platform.isAndroid) {
         try {
           final updateInfo = await InAppUpdate.checkForUpdate();
-          updateAvailable = (updateInfo.updateAvailability == UpdateAvailability.updateAvailable);
+          if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+            final currentCode = int.tryParse(packageInfo.buildNumber) ?? 0;
+            final availableCode = updateInfo.availableVersionCode ?? 0;
+            if (availableCode > 0 && currentCode > 0 && currentCode >= availableCode) {
+              updateAvailable = false;
+            } else {
+              updateAvailable = true;
+            }
+          }
         } catch (e) {
           debugPrint('[DrawerVersionFooter] Play Store check: $e');
         }
@@ -1333,7 +1341,7 @@ class _DrawerVersionFooterState extends State<_DrawerVersionFooter> {
             style: const TextStyle(
               fontSize: 13.5,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF0C3A20),
+              color: Color(0xFF061E36),
             ),
           ),
 
@@ -1347,14 +1355,14 @@ class _DrawerVersionFooterState extends State<_DrawerVersionFooter> {
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF0A4B26), Color(0xFF1B7A44)],
+                    colors: [Color(0xFF0A3B73), Color(0xFF155799)],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   ),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: const [
                     BoxShadow(
-                      color: Color(0x330A4B26),
+                      color: Color(0x330A3B73),
                       blurRadius: 6,
                       offset: Offset(0, 2),
                     ),
