@@ -1,78 +1,171 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'package:in_app_update/in_app_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Service responsible for Google Play Store Dynamic App Update handling.
 /// 
-/// Behavior:
-/// - Checks Google Play Store for new version availability on launch (Login & Home pages).
-/// - Shows KMR LIVE themed update popup when an update is available.
-/// - If the user dismisses/cancels the dialog ("Later"), it suppresses further prompts during the current app session.
-/// - On app restart (next app launch), the session flag resets and will prompt the user again.
+/// Accurately checks if the Google Play Store version is greater than the 
+/// currently installed app version and prompts the user to update.
 class AppUpdateService {
   AppUpdateService._();
 
   /// Session flag: tracks if the user dismissed the update prompt in the current app session
   static bool _hasDismissedThisSession = false;
 
-  /// Package Name for Google Play Store URL fallback
+  /// Package Name for Google Play Store fallback
   static String? _packageName;
 
   /// Main entry point to check and prompt for app update on app launch
-  static Future<void> checkForUpdate(BuildContext context, {bool forceCheck = false, bool enableDebugFallback = false}) async {
-    // If user already dismissed during this session and not forced, skip prompt
+  static Future<void> checkForUpdate(
+    BuildContext context, {
+    bool forceCheck = false,
+  }) async {
+    // If user already dismissed during this session and check is not forced, skip
     if (_hasDismissedThisSession && !forceCheck) {
-      debugPrint('[AppUpdateService] Update prompt skipped: User dismissed update during current session.');
+      debugPrint('[AppUpdateService] Update prompt skipped: Dismissed in current session.');
       return;
     }
 
     try {
       final packageInfo = await PackageInfo.fromPlatform();
       _packageName = packageInfo.packageName;
+      final currentVersion = packageInfo.version.trim();
+      final currentBuildNumber = int.tryParse(packageInfo.buildNumber.trim()) ?? 0;
 
-      if (Platform.isAndroid) {
-        bool showUpdate = false;
-        bool isImmediate = false;
+      if (!Platform.isAndroid) return;
 
-        try {
-          // 1. Check official Google Play In-App Update API
-          final updateInfo = await InAppUpdate.checkForUpdate();
+      bool updateAvailable = false;
+      bool isImmediate = false;
+      String? playStoreVersion;
 
-          if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
-            final currentVersionCode = int.tryParse(packageInfo.buildNumber) ?? 0;
-            final availableVersionCode = updateInfo.availableVersionCode ?? 0;
-
-            // Only show update if store version code is strictly higher than currently installed version!
-            if (availableVersionCode > 0 && currentVersionCode > 0 && currentVersionCode >= availableVersionCode) {
-              debugPrint('[AppUpdateService] App is already on latest build ($currentVersionCode >= $availableVersionCode). No update needed.');
-              showUpdate = false;
-            } else {
-              showUpdate = true;
-              isImmediate = updateInfo.immediateUpdateAllowed;
-            }
-          } else {
-            debugPrint('[AppUpdateService] Play Store reports app is up to date.');
+      // STEP 1: Attempt official Google Play In-App Update API
+      try {
+        final updateInfo = await InAppUpdate.checkForUpdate();
+        if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+          final storeBuildNumber = updateInfo.availableVersionCode ?? 0;
+          if (storeBuildNumber > currentBuildNumber || currentBuildNumber == 0) {
+            updateAvailable = true;
+            isImmediate = updateInfo.immediateUpdateAllowed;
+            debugPrint('[AppUpdateService] Play In-App Update API found newer build: $storeBuildNumber > $currentBuildNumber');
           }
-        } catch (playError) {
-          debugPrint('[AppUpdateService] Play Store API notice: $playError');
-          // Do not show update dialog on error or if sideloaded/debug
-          showUpdate = false;
         }
+      } catch (playError) {
+        debugPrint('[AppUpdateService] Play Core API skipped or unavailable: $playError');
+      }
 
-        if (showUpdate && context.mounted) {
-          showThemeUpdateDialog(context, isImmediate: isImmediate);
+      // STEP 2: Play Store Version Check fallback (guarantees detection if Play Store version > App version)
+      if (!updateAvailable) {
+        try {
+          playStoreVersion = await _fetchPlayStoreVersion(_packageName ?? 'com.kmr.agsolutions');
+          if (playStoreVersion != null && playStoreVersion.isNotEmpty) {
+            final isGreater = _isStoreVersionGreater(playStoreVersion, currentVersion);
+            debugPrint('[AppUpdateService] Version Comparison: Play Store ($playStoreVersion) vs Installed ($currentVersion) -> Newer: $isGreater');
+            if (isGreater) {
+              updateAvailable = true;
+            }
+          }
+        } catch (fetchErr) {
+          debugPrint('[AppUpdateService] Error fetching Play Store web version: $fetchErr');
         }
       }
+
+      // STEP 3: Display Update Bar / Dialog if Play Store version is greater
+      if (updateAvailable && context.mounted) {
+        showThemeUpdateDialog(
+          context,
+          isImmediate: isImmediate,
+          storeVersion: playStoreVersion,
+          installedVersion: currentVersion,
+        );
+      }
     } catch (e) {
-      debugPrint('[AppUpdateService] Error checking update: $e');
+      debugPrint('[AppUpdateService] Unexpected error during update check: $e');
     }
   }
 
-  /// Displays the KMR LIVE themed update dialog matching app styling
-  static void showThemeUpdateDialog(BuildContext context, {bool isImmediate = false}) {
+  /// Fetches the latest published version string directly from the Google Play Store page
+  static Future<String?> _fetchPlayStoreVersion(String packageName) async {
+    try {
+      final uri = Uri.parse(
+        'https://play.google.com/store/apps/details?id=$packageName&hl=en&gl=US',
+      );
+      final response = await http.get(
+        uri,
+        headers: {
+          'User-Agent':
+              'Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final body = response.body;
+
+        // Pattern 1: [[["6.0.2"]]]
+        final reg1 = RegExp(r'\[\[\["([0-9]+(?:\.[0-9]+)+[^"]*)"\]');
+        final match1 = reg1.firstMatch(body);
+        if (match1 != null) {
+          return match1.group(1);
+        }
+
+        // Pattern 2: ["6.0.2"]
+        final reg2 = RegExp(r'\["([0-9]+\.[0-9]+(?:\.[0-9]+)*)"\]');
+        final match2 = reg2.firstMatch(body);
+        if (match2 != null) {
+          return match2.group(1);
+        }
+
+        // Pattern 3: AF_dataServiceRequests version pattern
+        final reg3 = RegExp(r'"([0-9]+\.[0-9]+\.[0-9]+)"');
+        final matches = reg3.allMatches(body);
+        for (final m in matches) {
+          final ver = m.group(1);
+          if (ver != null && ver != '0.0.0') {
+            return ver;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[AppUpdateService] Error reading Play Store page: $e');
+    }
+    return null;
+  }
+
+  /// Compares semantic versions (e.g. "6.0.2" vs "5.0.3")
+  /// Returns true if [storeVersion] is strictly greater than [installedVersion]
+  static bool _isStoreVersionGreater(String storeVersion, String installedVersion) {
+    try {
+      final storeClean = storeVersion.replaceAll(RegExp(r'[^0-9.]'), '');
+      final currentClean = installedVersion.replaceAll(RegExp(r'[^0-9.]'), '');
+
+      final storeParts = storeClean.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      final currentParts = currentClean.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+
+      final maxLength = storeParts.length > currentParts.length ? storeParts.length : currentParts.length;
+
+      for (int i = 0; i < maxLength; i++) {
+        final storePart = i < storeParts.length ? storeParts[i] : 0;
+        final currentPart = i < currentParts.length ? currentParts[i] : 0;
+
+        if (storePart > currentPart) return true;
+        if (storePart < currentPart) return false;
+      }
+    } catch (e) {
+      debugPrint('[AppUpdateService] Version parse comparison error: $e');
+    }
+    return false;
+  }
+
+  /// Displays the KMR LIVE themed update popup dialog
+  static void showThemeUpdateDialog(
+    BuildContext context, {
+    bool isImmediate = false,
+    String? storeVersion,
+    String? installedVersion,
+  }) {
     if (_hasDismissedThisSession && !isImmediate) return;
 
     showDialog(
@@ -95,7 +188,7 @@ class AppUpdateService {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Top Emerald Icon Badge
+                  // Top Icon Badge
                   Container(
                     width: 64,
                     height: 64,
@@ -126,7 +219,7 @@ class AppUpdateService {
 
                   // Description
                   Text(
-                    'A new version of KMR LIVE is available on Google Play Store. Update now for the latest features, enhanced speed, and security updates.',
+                    'A new version of KMR LiVE is available on Google Play Store. Update now to enjoy the latest features, improvements, and bug fixes.',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
                       fontSize: 13,
@@ -151,7 +244,9 @@ class AppUpdateService {
                         const Icon(Icons.stars_rounded, size: 16, color: Color(0xFF0A3B73)),
                         const SizedBox(width: 6),
                         Text(
-                          'Latest Store Build Available',
+                          storeVersion != null
+                              ? 'New Version $storeVersion Available'
+                              : 'Latest Store Build Available',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -166,7 +261,7 @@ class AppUpdateService {
                   // Action Buttons
                   Row(
                     children: [
-                      // Cancel / Later Button (if not forced immediate)
+                      // Dismiss / Later Button
                       if (!isImmediate) ...[
                         Expanded(
                           child: TextButton(
@@ -221,7 +316,9 @@ class AppUpdateService {
                               backgroundColor: Colors.transparent,
                               shadowColor: Colors.transparent,
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -235,7 +332,11 @@ class AppUpdateService {
                                   ),
                                 ),
                                 const SizedBox(width: 6),
-                                const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+                                const Icon(
+                                  Icons.arrow_forward_rounded,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
                               ],
                             ),
                           ),
@@ -252,7 +353,7 @@ class AppUpdateService {
     );
   }
 
-  /// Triggers Play Store update or opens Play Store app page
+  /// Triggers Play Store in-app update or launches the Google Play Store app page
   static Future<void> _performUpdate() async {
     try {
       if (Platform.isAndroid) {
@@ -261,25 +362,25 @@ class AppUpdateService {
         await _openPlayStorePage();
       }
     } catch (e) {
-      debugPrint('[AppUpdateService] InAppUpdate failed, falling back to Play Store URL: $e');
+      debugPrint('[AppUpdateService] Immediate update failed, opening Play Store URL: $e');
       await _openPlayStorePage();
     }
   }
 
-  /// Opens Google Play Store app page for the application
+  /// Opens Google Play Store page directly
   static Future<void> _openPlayStorePage() async {
-    final pkg = _packageName ?? 'com.kmr.kmr_new';
-    final playStoreUrl = Uri.parse('https://play.google.com/store/apps/details?id=$pkg');
-    final marketUrl = Uri.parse('market://details?id=$pkg');
+    final pkg = _packageName ?? 'com.kmr.agsolutions';
+    final marketUri = Uri.parse('market://details?id=$pkg');
+    final webUri = Uri.parse('https://play.google.com/store/apps/details?id=$pkg');
 
     try {
-      if (await canLaunchUrl(marketUrl)) {
-        await launchUrl(marketUrl, mode: LaunchMode.externalApplication);
-      } else if (await canLaunchUrl(playStoreUrl)) {
-        await launchUrl(playStoreUrl, mode: LaunchMode.externalApplication);
+      if (await canLaunchUrl(marketUri)) {
+        await launchUrl(marketUri, mode: LaunchMode.externalApplication);
+      } else if (await canLaunchUrl(webUri)) {
+        await launchUrl(webUri, mode: LaunchMode.externalApplication);
       }
     } catch (e) {
-      debugPrint('[AppUpdateService] Error launching Play Store: $e');
+      debugPrint('[AppUpdateService] Error opening Play Store: $e');
     }
   }
 }

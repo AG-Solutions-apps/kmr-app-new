@@ -488,6 +488,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     final imgUrl = liveData.getFullVendorImageUrl(item);
     final diff = item.priceDifference;
     final isNegative = diff.contains('-');
+    final isPositive = diff.contains('+');
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -604,7 +605,11 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: isNegative ? const Color(0xFFE53935) : const Color(0xFF0A3B73),
+                                    color: isNegative
+                                        ? const Color(0xFFE53935)
+                                        : (isPositive
+                                            ? const Color(0xFF00A854)
+                                            : const Color(0xFF0A3B73)),
                                   ),
                                 ),
                               ],
@@ -1246,6 +1251,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     final imgUrl = liveData.getFullVendorImageUrl(item);
     final diff = item.priceDifference;
     final isNegative = diff.contains('-');
+    final isPositive = diff.contains('+');
 
     showDialog(
       context: context,
@@ -1357,72 +1363,80 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Current Price',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey.shade700,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Current Price',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey.shade700,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Text(
-                                  '₹ ${item.vendorProductRate}',
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFF0A3B73),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Text(
+                                    '₹ ${item.vendorProductRate}',
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF0A3B73),
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  diff,
-                                  style: TextStyle(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: isNegative ? const Color(0xFFE53935) : const Color(0xFF0A3B73),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    diff,
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: isNegative
+                                          ? const Color(0xFFE53935)
+                                          : (isPositive
+                                              ? const Color(0xFF00A854)
+                                              : const Color(0xFF0A3B73)),
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(Icons.calendar_today_rounded, size: 13, color: Color(0xFF0A3B73)),
-                                const SizedBox(width: 4),
-                                Text(
-                                  item.vendorProductCreatedDate,
-                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0A3B73)),
-                                ),
-                                const SizedBox(width: 10),
-                                const Icon(Icons.access_time_rounded, size: 13, color: Color(0xFF0A3B73)),
-                                const SizedBox(width: 4),
-                                Text(
-                                  item.vendorProductCreatedTime,
-                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0A3B73)),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 10,
+                                runSpacing: 4,
+                                children: [
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.calendar_today_rounded, size: 13, color: Color(0xFF0A3B73)),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        item.vendorProductCreatedDate,
+                                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0A3B73)),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.access_time_rounded, size: 13, color: Color(0xFF0A3B73)),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        item.vendorProductCreatedTime,
+                                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF0A3B73)),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                          child: const Icon(
-                            Icons.show_chart_rounded,
-                            size: 38,
-                            color: Color(0xFF0A3B73),
-                          ),
                         ),
+                        const SizedBox(width: 10),
+                        _LivePriceSparklineCard(item: item),
                       ],
                     ),
                   ),
@@ -1474,7 +1488,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                             child: const Row(
                               children: [
                                 Expanded(
-                                  flex: 2,
+                                  flex: 3,
                                   child: Text(
                                     'Date',
                                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF061E36)),
@@ -1495,6 +1509,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF061E36)),
                                   ),
                                 ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    '+ / -',
+                                    textAlign: TextAlign.right,
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF061E36)),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -1505,22 +1527,50 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                             separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEBF3FA)),
                             itemBuilder: (context, idx) {
                               final stock = item.stocks[idx];
+
+                              // Calculate difference against immediate previous historical stock
+                              final double currentRate = double.tryParse(stock.rate) ?? 0.0;
+                              double diff = 0.0;
+                              if (idx + 1 < item.stocks.length) {
+                                final double prevRate = double.tryParse(item.stocks[idx + 1].rate) ?? currentRate;
+                                diff = currentRate - prevRate;
+                              }
+
+                              final bool isUp = diff > 0;
+                              final bool isDown = diff < 0;
+                              final Color diffColor = isDown
+                                  ? const Color(0xFFE53935)
+                                  : (isUp
+                                      ? const Color(0xFF00A854)
+                                      : const Color(0xFF64748B));
+
+                              final String diffText;
+                              if (diff == 0.0) {
+                                diffText = '0';
+                              } else {
+                                final absDiff = diff.abs();
+                                final String numStr = (absDiff.truncateToDouble() == absDiff)
+                                    ? absDiff.toInt().toString()
+                                    : absDiff.toStringAsFixed(1);
+                                diffText = isUp ? '+$numStr' : '-$numStr';
+                              }
+
                               return Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                                 child: Row(
                                   children: [
                                     Expanded(
-                                      flex: 2,
+                                      flex: 3,
                                       child: Text(
                                         stock.date,
-                                        style: const TextStyle(fontSize: 12.5, color: Color(0xFF4A5568)),
+                                        style: const TextStyle(fontSize: 12, color: Color(0xFF4A5568), fontWeight: FontWeight.w500),
                                       ),
                                     ),
                                     Expanded(
                                       flex: 2,
                                       child: Text(
                                         stock.time,
-                                        style: const TextStyle(fontSize: 12.5, color: Color(0xFF4A5568)),
+                                        style: const TextStyle(fontSize: 12, color: Color(0xFF4A5568), fontWeight: FontWeight.w500),
                                       ),
                                     ),
                                     Expanded(
@@ -1529,9 +1579,21 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                         stock.rate,
                                         textAlign: TextAlign.right,
                                         style: const TextStyle(
-                                          fontSize: 13.5,
+                                          fontSize: 13,
                                           fontWeight: FontWeight.w800,
                                           color: Color(0xFF061E36),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        diffText,
+                                        textAlign: TextAlign.right,
+                                        style: TextStyle(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: diffColor,
                                         ),
                                       ),
                                     ),
@@ -2240,46 +2302,51 @@ class _CategoryBannerSliderState extends State<_CategoryBannerSlider> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<SliderResponse>(
-      future: widget.slidersFuture,
-      builder: (context, snapshot) {
-        if (snapshot.hasData && snapshot.data!.data.isNotEmpty) {
-          final sliders = snapshot.data!.data;
-          final sliderRes = snapshot.data!;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double bannerHeight =
+            (constraints.maxWidth * 0.44).clamp(160.0, 210.0);
 
-          _startAutoScroll(sliders.length);
+        return FutureBuilder<SliderResponse>(
+          future: widget.slidersFuture,
+          builder: (context, snapshot) {
+            if (snapshot.hasData && snapshot.data!.data.isNotEmpty) {
+              final sliders = snapshot.data!.data;
+              final sliderRes = snapshot.data!;
 
-          return Column(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(18),
-                child: SizedBox(
-                  height: 165,
-                  width: double.infinity,
-                  child: PageView.builder(
-                    controller: _pageController,
-                    onPageChanged: (pageIndex) {
-                      setState(() {
-                        _currentIndex = pageIndex % sliders.length;
-                      });
-                    },
-                    itemBuilder: (context, index) {
-                      final item = sliders[index % sliders.length];
-                      final imgUrl = sliderRes.getFullImageUrl(item);
-                      return GestureDetector(
-                        onTap: () => _launchSliderUrl(item.url),
-                        child: AppCachedNetworkImage(
-                          imageUrl: imgUrl,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          height: double.infinity,
-                          errorWidget: const SizedBox.shrink(),
-                        ),
-                      );
-                    },
+              _startAutoScroll(sliders.length);
+
+              return Column(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: SizedBox(
+                      height: bannerHeight,
+                      width: double.infinity,
+                      child: PageView.builder(
+                        controller: _pageController,
+                        onPageChanged: (pageIndex) {
+                          setState(() {
+                            _currentIndex = pageIndex % sliders.length;
+                          });
+                        },
+                        itemBuilder: (context, index) {
+                          final item = sliders[index % sliders.length];
+                          final imgUrl = sliderRes.getFullImageUrl(item);
+                          return GestureDetector(
+                            onTap: () => _launchSliderUrl(item.url),
+                            child: AppCachedNetworkImage(
+                              imageUrl: imgUrl,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              errorWidget: const SizedBox.shrink(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                   ),
-                ),
-              ),
               if (sliders.length > 1) ...[
                 const SizedBox(height: 8),
                 Row(
@@ -2305,8 +2372,305 @@ class _CategoryBannerSliderState extends State<_CategoryBannerSlider> {
           );
         }
         return const SizedBox.shrink();
+          },
+        );
       },
     );
+  }
+}
+
+/// Dynamic sparkline graph card displayed in the Live Price History dialog,
+/// taking previous 3-4 historical stock prices + current price to render
+/// an interactive financial trendline with green (raise) / red (fall) styling,
+/// change indicator badge, and live pulse dot.
+class _LivePriceSparklineCard extends StatelessWidget {
+  final LiveRateItem item;
+
+  const _LivePriceSparklineCard({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final double currentPrice = double.tryParse(item.vendorProductRate) ?? 0.0;
+
+    // Collect up to 4 previous prices in chronological order (oldest -> newest)
+    final List<double> prices = [];
+    final int countToTake = item.stocks.length >= 4 ? 4 : item.stocks.length;
+    for (int i = countToTake - 1; i >= 0; i--) {
+      final rate = double.tryParse(item.stocks[i].rate);
+      if (rate != null) {
+        prices.add(rate);
+      }
+    }
+    // Append the current live price as the latest point
+    prices.add(currentPrice);
+
+    // Calculate increase/decrease against immediate previous price
+    final double prevPrice = item.stocks.isNotEmpty
+        ? (double.tryParse(item.stocks.first.rate) ?? currentPrice)
+        : currentPrice;
+    final double diffVal = currentPrice - prevPrice;
+
+    final bool isUp = diffVal > 0;
+    final bool isDown = diffVal < 0;
+
+    // Aesthetic color scheme
+    final Color trendColor = isUp
+        ? const Color(0xFF00A854)
+        : (isDown ? const Color(0xFFE53935) : const Color(0xFF0A3B73));
+    final Color badgeBg = isUp
+        ? const Color(0xFFE8F5E9)
+        : (isDown ? const Color(0xFFFFEBEE) : const Color(0xFFEBF3FA));
+    final Color borderColor = isUp
+        ? const Color(0xFFA5D6A7)
+        : (isDown ? const Color(0xFFEF9A9A) : const Color(0xFFD0E1F4));
+
+    final IconData trendIcon = isUp
+        ? Icons.trending_up_rounded
+        : (isDown ? Icons.trending_down_rounded : Icons.trending_flat_rounded);
+
+    // Formatted difference text (e.g. "+5", "-5", "0")
+    String diffFormatted;
+    if (isUp) {
+      diffFormatted = '+${diffVal.toStringAsFixed(diffVal.truncateToDouble() == diffVal ? 0 : 1)}';
+    } else if (isDown) {
+      diffFormatted = diffVal.toStringAsFixed(diffVal.truncateToDouble() == diffVal ? 0 : 1);
+    } else {
+      diffFormatted = '0';
+    }
+
+    final String tooltipMessage = prices.length > 1
+        ? 'Trend: ${prices.map((p) => '₹${p.toStringAsFixed(p.truncateToDouble() == p ? 0 : 1)}').join(' → ')} ($diffFormatted)'
+        : 'Live Price: ₹${currentPrice.toStringAsFixed(1)}';
+
+    return Tooltip(
+      message: tooltipMessage,
+      preferBelow: false,
+      child: Container(
+        width: 106,
+        height: 70,
+        padding: const EdgeInsets.fromLTRB(7, 6, 7, 5),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: borderColor, width: 1.1),
+          boxShadow: [
+            BoxShadow(
+              color: trendColor.withValues(alpha: 0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Top Badge row: Trend icon + Change text & Live indicator
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: badgeBg,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(trendIcon, size: 12, color: trendColor),
+                      const SizedBox(width: 2),
+                      Text(
+                        diffFormatted,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: trendColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 5.5,
+                      height: 5.5,
+                      decoration: BoxDecoration(
+                        color: trendColor,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: trendColor.withValues(alpha: 0.4),
+                            blurRadius: 3,
+                            spreadRadius: 0.5,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      'Live',
+                      style: TextStyle(
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.bold,
+                        color: trendColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 3),
+            // Dynamic Sparkline Graph
+            Expanded(
+              child: CustomPaint(
+                painter: _SparklineGraphPainter(
+                  prices: prices,
+                  lineColor: trendColor,
+                  fillColor: trendColor.withValues(alpha: 0.18),
+                ),
+                size: Size.infinite,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Custom painter rendering a smooth monotonic Bézier sparkline curve
+/// with vertical gradient fill and live current-price endpoint marker.
+class _SparklineGraphPainter extends CustomPainter {
+  final List<double> prices;
+  final Color lineColor;
+  final Color fillColor;
+
+  _SparklineGraphPainter({
+    required this.prices,
+    required this.lineColor,
+    required this.fillColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (prices.isEmpty || size.width <= 0 || size.height <= 0) return;
+
+    if (prices.length == 1) {
+      final y = size.height / 2;
+      final paint = Paint()
+        ..color = lineColor
+        ..strokeWidth = 2.0
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(Offset(4, y), Offset(size.width - 4, y), paint);
+      canvas.drawCircle(Offset(size.width - 4, y), 3.0, Paint()..color = lineColor);
+      return;
+    }
+
+    double minVal = prices.first;
+    double maxVal = prices.first;
+    for (final p in prices) {
+      if (p < minVal) minVal = p;
+      if (p > maxVal) maxVal = p;
+    }
+
+    const double paddingX = 4.0;
+    const double paddingTop = 4.0;
+    const double paddingBottom = 4.0;
+    final double drawWidth = size.width - (paddingX * 2);
+    final double drawHeight = size.height - paddingTop - paddingBottom;
+    final double range = maxVal - minVal;
+
+    final List<Offset> points = [];
+    for (int i = 0; i < prices.length; i++) {
+      final double x = paddingX + (drawWidth / (prices.length - 1)) * i;
+      final double y = range == 0
+          ? (size.height / 2)
+          : (paddingTop + drawHeight - (((prices[i] - minVal) / range) * drawHeight));
+      points.add(Offset(x, y));
+    }
+
+    // Build smooth curved path
+    final path = Path();
+    path.moveTo(points.first.dx, points.first.dy);
+
+    if (points.length == 2) {
+      path.lineTo(points.last.dx, points.last.dy);
+    } else {
+      for (int i = 0; i < points.length - 1; i++) {
+        final p0 = points[i];
+        final p1 = points[i + 1];
+        final double controlX = (p0.dx + p1.dx) / 2;
+        path.cubicTo(
+          controlX,
+          p0.dy,
+          controlX,
+          p1.dy,
+          p1.dx,
+          p1.dy,
+        );
+      }
+    }
+
+    // Area fill under curve with gradient fading to transparent
+    final fillPath = Path.from(path)
+      ..lineTo(points.last.dx, size.height)
+      ..lineTo(points.first.dx, size.height)
+      ..close();
+
+    final fillPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          fillColor,
+          fillColor.withValues(alpha: 0.0),
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(fillPath, fillPaint);
+
+    // Smooth stroke line
+    final linePaint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawPath(path, linePaint);
+
+    // Live endpoint marker for current price (halo + white ring + center dot)
+    final lastPoint = points.last;
+    canvas.drawCircle(
+      lastPoint,
+      4.5,
+      Paint()..color = lineColor.withValues(alpha: 0.25),
+    );
+    canvas.drawCircle(
+      lastPoint,
+      2.5,
+      Paint()..color = Colors.white,
+    );
+    canvas.drawCircle(
+      lastPoint,
+      1.5,
+      Paint()..color = lineColor,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _SparklineGraphPainter oldDelegate) {
+    if (oldDelegate.lineColor != lineColor ||
+        oldDelegate.fillColor != fillColor ||
+        oldDelegate.prices.length != prices.length) {
+      return true;
+    }
+    for (int i = 0; i < prices.length; i++) {
+      if (prices[i] != oldDelegate.prices[i]) return true;
+    }
+    return false;
   }
 }
 

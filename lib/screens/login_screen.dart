@@ -256,6 +256,19 @@ class _LoginScreenState extends State<LoginScreen> {
             (e.data is Map && e.data['code'] == 404)) {
           is404User = true;
           response = e.data;
+        } else if (e.statusCode == 422 || (e.data is Map && e.data['code'] == 422)) {
+          final msg = (e.data is Map && e.data['message'] != null)
+              ? e.data['message'].toString()
+              : e.message;
+          setState(() {
+            _isLoading = false;
+          });
+          _showCustomToast(
+            title: 'Access Expired',
+            message: msg.isNotEmpty ? msg : 'Your access has expired—contact admin for help',
+            isError: true,
+          );
+          return;
         } else {
           rethrow;
         }
@@ -265,7 +278,20 @@ class _LoginScreenState extends State<LoginScreen> {
           ? int.tryParse(response['code'].toString()) ?? 200
           : (is404User ? 404 : 200);
 
-      if (responseCode == 200) {
+      if (responseCode == 422) {
+        final message = (response is Map && response.containsKey('message'))
+            ? response['message'].toString()
+            : 'Your access has expired—contact admin for help';
+        setState(() {
+          _isLoading = false;
+        });
+        _showCustomToast(
+          title: 'Access Expired',
+          message: message,
+          isError: true,
+        );
+        return;
+      } else if (responseCode == 200) {
         _isRegisteredUser = true;
         if (response is Map && response.containsKey('data')) {
           _backendPassword = response['data'].toString();
@@ -388,11 +414,62 @@ class _LoginScreenState extends State<LoginScreen> {
       try {
         final deviceId = await _authService.getFcmDeviceToken();
 
-        final loginResult = await _authService.appLogin(
-          mobile: mobile,
-          password: _backendPassword,
-          deviceId: deviceId,
-        );
+        dynamic loginResult;
+        try {
+          loginResult = await _authService.appLogin(
+            mobile: mobile,
+            password: _backendPassword,
+            deviceId: deviceId,
+          );
+        } on ApiException catch (e) {
+          if (e.statusCode == 422 || (e.data is Map && e.data['code'] == 422)) {
+            final msg = (e.data is Map && e.data['message'] != null)
+                ? e.data['message'].toString()
+                : e.message;
+            setState(() {
+              _isLoading = false;
+            });
+            _showCustomToast(
+              title: 'Access Expired',
+              message: msg.isNotEmpty ? msg : 'Your access has expired—contact admin for help',
+              isError: true,
+            );
+            return;
+          }
+          rethrow;
+        }
+
+        // Validate loginResult payload (if backend returned HTTP 200 with code 422)
+        if (loginResult is Map) {
+          final int code = int.tryParse(loginResult['code']?.toString() ?? '') ?? 200;
+          final String msg = loginResult['message']?.toString() ?? '';
+
+          if (code == 422 ||
+              msg.toLowerCase().contains('expired') ||
+              msg.toLowerCase().contains('contact admin')) {
+            setState(() {
+              _isLoading = false;
+            });
+            _showCustomToast(
+              title: 'Access Expired',
+              message: msg.isNotEmpty ? msg : 'Your access has expired—contact admin for help',
+              isError: true,
+            );
+            return;
+          }
+
+          if (code != 200 && code != 0) {
+            setState(() {
+              _isLoading = false;
+            });
+            _showCustomToast(
+              title: 'Login Failed',
+              message: msg.isNotEmpty ? msg : 'Unable to login. Code: $code',
+              isError: true,
+            );
+            return;
+          }
+        }
 
         setState(() {
           _isLoading = false;
@@ -405,6 +482,9 @@ class _LoginScreenState extends State<LoginScreen> {
           password: _backendPassword,
           deviceId: deviceId,
         );
+
+        // Process validity_date from app-login response dynamically
+        UserStatusService.instance.processUserData(loginResult);
 
         // Start 3-Minute Periodic Status & Validity Checker
         UserStatusService.instance.startPeriodicCheck();
@@ -498,7 +578,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) {
                             return Text(
-                              'KMR LIVE',
+                              'KMR LiVE',
                               style: GoogleFonts.poppins(
                                 fontSize: 30,
                                 fontWeight: FontWeight.w900,
@@ -545,7 +625,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 text: TextSpan(
                                   children: [
                                     TextSpan(
-                                      text: _isOtpSent ? 'Verify your\n' : 'Log in to your\n',
+                                      text: _isOtpSent ? 'Verify your ' : 'Log in to your\n' ,
                                       style: GoogleFonts.poppins(
                                         fontSize: 26,
                                         fontWeight: FontWeight.w800,
@@ -553,15 +633,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         height: 1.2,
                                       ),
                                     ),
-                                    TextSpan(
-                                      text: 'KMR LIVE ',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 26,
-                                        fontWeight: FontWeight.w800,
-                                        color: const Color(0xFF0A3B73),
-                                        height: 1.2,
-                                      ),
-                                    ),
+                                    
                                     TextSpan(
                                       text: _isOtpSent ? 'OTP' : 'account',
                                       style: GoogleFonts.poppins(
@@ -775,7 +847,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: (_agreeTerms || _isOtpSent)
-                                        ? [const Color(0xFF155799), const Color(0xFF0A3B73), const Color(0xFF052342)]
+                                        ? [const Color(0xFF155799), const Color.fromARGB(255, 17, 86, 165), const Color.fromARGB(255, 10, 71, 132)]
                                         : [Colors.grey.shade400, Colors.grey.shade500],
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,

@@ -432,7 +432,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       Text(
                                         _nameController.text.isNotEmpty
                                             ? _nameController.text
-                                            : 'KMR Live User',
+                                            : 'KMR LiVE User',
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -526,7 +526,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   _buildProfileInfoRow(
                                     icon: Icons.person_outline_rounded,
                                     label: 'Full Name',
-                                    value: _nameController.text.isNotEmpty ? _nameController.text : 'KMR Live User',
+                                    value: _nameController.text.isNotEmpty ? _nameController.text : 'KMR LiVE User',
                                     isLocked: true,
                                   ),
                                   _buildProfileInfoRow(
@@ -830,7 +830,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                                 const SizedBox(height: 6),
                                 const Text(
-                                  'Permanently delete your profile account and data from KMR Live.',
+                                  'Permanently delete your profile account and data from KMR LiVE.',
                                   style: TextStyle(fontSize: 12.5, color: Color(0xFF742A2A)),
                                 ),
                                 const SizedBox(height: 14),

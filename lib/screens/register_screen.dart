@@ -135,7 +135,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (mounted) {
         AppSnackBar.showSuccess(
           context,
-          title: 'Welcome to KMR LIVE!',
+          title: 'Welcome to KMR LiVE!',
           message: 'Account registered & logged in successfully.',
         );
 
@@ -292,7 +292,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             fit: BoxFit.contain,
                             errorBuilder: (context, error, stackTrace) {
                               return Text(
-                                'KMR LIVE',
+                                'KMR LiVE',
                                 style: GoogleFonts.poppins(
                                   fontSize: 28,
                                   fontWeight: FontWeight.w900,
@@ -331,15 +331,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   height: 1.2,
                                 ),
                               ),
-                              TextSpan(
-                                text: 'KMR LIVE ',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w800,
-                                  color: const Color(0xFF155799),
-                                  height: 1.2,
-                                ),
-                              ),
+                              
                               TextSpan(
                                 text: 'account',
                                 style: GoogleFonts.poppins(

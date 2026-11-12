@@ -213,6 +213,11 @@ class ApiService {
     return await post(ApiConstants.appDeleteProfile, token: token);
   }
 
+  /// Check app validity using app-check-validity endpoint
+  Future<dynamic> checkValidity({required String token}) async {
+    return await get(ApiConstants.appCheckValidity, token: token);
+  }
+
   /// Perform a GET request
   /// NOTE: GET requests must NOT send Content-Type header — servers return 406 Not Acceptable.
   /// Only POST/PUT/PATCH requests need Content-Type: application/json.

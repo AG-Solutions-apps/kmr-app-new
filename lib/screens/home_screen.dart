@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,6 +19,7 @@ import 'profile_screen.dart';
 import '../core/widgets/app_snackbar.dart';
 import '../widgets/app_cached_network_image.dart';
 import 'category_detail_screen.dart';
+import '../core/utils/date_formatter.dart';
 
 class HomeScreen extends StatefulWidget {
   final dynamic userData;
@@ -35,16 +37,149 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   DateTime? _lastBackPressTime;
 
+  Timer? _validityCheckTimer;
+  bool _isValidityExpired = false;
+  String _validityExpiredMessage = 'Your access has expired—contact admin for help';
+  String? _apiValidityDate;
+
+  String _getResolvedValidityDate(UserStatusData statusData) {
+    if (statusData.validityDateStr.isNotEmpty && statusData.validityDateStr != 'N/A') {
+      return statusData.validityDateStr;
+    }
+    if (_apiValidityDate != null && _apiValidityDate!.isNotEmpty && _apiValidityDate != 'N/A') {
+      final formatted = AppDateFormatter.format(_apiValidityDate);
+      if (formatted.isNotEmpty && formatted != 'N/A') return formatted;
+      return _apiValidityDate!;
+    }
+    if (widget.userData != null) {
+      final date = SessionService.extractValidityDate(widget.userData);
+      if (date.isNotEmpty && date != 'N/A') {
+        final formatted = AppDateFormatter.format(date);
+        if (formatted.isNotEmpty && formatted != 'N/A') return formatted;
+        return date;
+      }
+    }
+    return '';
+  }
+
+  int _getResolvedDaysRemaining(UserStatusData statusData) {
+    if (statusData.daysRemaining != 0) {
+      return statusData.daysRemaining;
+    }
+    final rawDate = (_apiValidityDate != null && _apiValidityDate!.isNotEmpty && _apiValidityDate != 'N/A')
+        ? _apiValidityDate!
+        : (widget.userData != null ? SessionService.extractValidityDate(widget.userData) : '');
+    if (rawDate.isNotEmpty && rawDate != 'N/A') {
+      final parsed = UserStatusService.parseValidityDate(rawDate);
+      return parsed.daysRemaining;
+    }
+    return statusData.daysRemaining;
+  }
+
   @override
   void initState() {
     super.initState();
+    _initValidityDate();
     _loadData();
+    _startValidityCheckTimer();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         AppUpdateService.checkForUpdate(context);
-        UserStatusService.instance.checkStatusNow();
+        UserStatusService.instance.checkStatusNow(directUserData: widget.userData);
       }
     });
+  }
+
+  Future<void> _initValidityDate() async {
+    // 1. Check widget.userData first
+    if (widget.userData != null) {
+      final date = SessionService.extractValidityDate(widget.userData);
+      if (date.isNotEmpty && date != 'N/A') {
+        _apiValidityDate = date;
+        await SessionService.saveValidityDate(date);
+        UserStatusService.instance.processUserData(widget.userData);
+      }
+    }
+    // 2. Check saved session validity date
+    if (_apiValidityDate == null || _apiValidityDate!.isEmpty || _apiValidityDate == 'N/A') {
+      final saved = await SessionService.getValidityDate();
+      if (saved != null && saved.isNotEmpty && saved != 'N/A') {
+        _apiValidityDate = saved;
+        UserStatusService.instance.processUserData({'validity_date': saved});
+      }
+    }
+    // 3. Check getUserData()
+    if (_apiValidityDate == null || _apiValidityDate!.isEmpty || _apiValidityDate == 'N/A') {
+      final uData = await SessionService.getUserData();
+      final date = SessionService.extractValidityDate(uData);
+      if (date.isNotEmpty && date != 'N/A') {
+        _apiValidityDate = date;
+        await SessionService.saveValidityDate(date);
+        UserStatusService.instance.processUserData(uData);
+      }
+    }
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _startValidityCheckTimer() {
+    _validityCheckTimer?.cancel();
+    // Check immediately on load
+    _checkAppValidity();
+    // Run every 10 seconds as required
+    _validityCheckTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      _checkAppValidity();
+    });
+  }
+
+  Future<void> _checkAppValidity() async {
+    try {
+      final token = await SessionService.getToken();
+      if (token == null || token.isEmpty) return;
+
+      final response = await ApiService().checkValidity(token: token);
+
+      bool isGood = false;
+      String msg = '';
+
+      if (response is Map) {
+        final code = int.tryParse(response['code']?.toString() ?? '') ?? 0;
+        msg = response['message']?.toString().trim() ?? '';
+        // If code == 200 and message is "Yes" (case-insensitive) => all good
+        if (code == 200 && msg.toLowerCase() == 'yes') {
+          isGood = true;
+        }
+      }
+
+      if (mounted) {
+        final shouldExpire = !isGood;
+        if (_isValidityExpired != shouldExpire) {
+          setState(() {
+            _isValidityExpired = shouldExpire;
+            if (msg.isNotEmpty && msg.toLowerCase() != 'yes') {
+              _validityExpiredMessage = msg;
+            }
+          });
+        }
+        UserStatusService.instance.setValidityExpired(shouldExpire);
+      }
+    } catch (e) {
+      debugPrint('[HomeScreen] app-check-validity API notice: $e');
+      if (mounted && !_isValidityExpired) {
+        setState(() {
+          _isValidityExpired = true;
+          _validityExpiredMessage = 'Your access has expired—contact admin for help';
+        });
+        UserStatusService.instance.setValidityExpired(true);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _validityCheckTimer?.cancel();
+    super.dispose();
   }
 
   void _loadData() {
@@ -143,7 +278,10 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ValueListenableBuilder<UserStatusData>(
         valueListenable: UserStatusService.instance.statusNotifier,
         builder: (context, statusData, child) {
-          final bool isExpired = statusData.isExpired;
+          final int resolvedDays = _getResolvedDaysRemaining(statusData);
+          final bool isExpired = _isValidityExpired || statusData.isExpired || resolvedDays < 0;
+          final int displayDays = (isExpired || resolvedDays < 0) ? 0 : resolvedDays;
+          final bool showSubscriptionCard = isExpired || displayDays <= 7;
 
           return Scaffold(
             key: _scaffoldKey,
@@ -156,6 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: const Color(0xFF0F5A2F),
                 strokeWidth: 2.5,
                 onRefresh: () async {
+                  await _checkAppValidity();
                   UserStatusService.instance.checkStatusNow();
                   _loadData();
                   await Future.wait([_categoriesFuture, _slidersFuture]);
@@ -170,51 +309,73 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       const SizedBox(height: 12),
 
-                      // BANNER SLIDER
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                        child: _HomeBannerSlider(
-                          slidersFuture: _slidersFuture,
-                          screenWidth: screenWidth,
-                        ),
-                      ),
+                      // WRAP ENTIRE APP CONTENT: when expired, make it black and white (greyscale), dimmed opacity, and unclickable
+                      IgnorePointer(
+                        ignoring: isExpired,
+                        child: ColorFiltered(
+                          colorFilter: isExpired
+                              ? const ColorFilter.matrix(<double>[
+                                  0.2126, 0.7152, 0.0722, 0, 0,
+                                  0.2126, 0.7152, 0.0722, 0, 0,
+                                  0.2126, 0.7152, 0.0722, 0, 0,
+                                  0,      0,      0,      1, 0,
+                                ])
+                              : const ColorFilter.mode(Colors.transparent, BlendMode.dst),
+                          child: Opacity(
+                            opacity: isExpired ? 0.6 : 1.0,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // BANNER SLIDER
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                  child: _HomeBannerSlider(
+                                    slidersFuture: _slidersFuture,
+                                    screenWidth: screenWidth,
+                                  ),
+                                ),
 
-                      const SizedBox(height: 20),
+                                const SizedBox(height: 20),
 
-                      // CATEGORIES HEADER
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'CATEGORIES',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                                color: Color(0xFF061E36),
-                                letterSpacing: 1.2,
-                              ),
+                                // CATEGORIES HEADER
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'CATEGORIES',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w900,
+                                          color: Color(0xFF061E36),
+                                          letterSpacing: 1.2,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                const SizedBox(height: 12),
+
+                                // CATEGORIES GRID
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                  child: _buildCategoryGrid(isExpired),
+                                ),
+
+                                const SizedBox(height: 16),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
-
-                      const SizedBox(height: 12),
-
-                      // CATEGORIES GRID
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                        child: _buildCategoryGrid(isExpired),
-                      ),
-
-                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
               ),
             ),
-            bottomNavigationBar: (isExpired || statusData.daysRemaining < 7)
+            bottomNavigationBar: showSubscriptionCard
                 ? SafeArea(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
@@ -518,10 +679,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ============================================================
+  // ============================================================
   // SUBSCRIPTION / TRIAL CARD (FIXED AT BOTTOM)
   // ============================================================
   Widget _buildSubscriptionCard(UserStatusData statusData) {
-    final bool isExpired = statusData.isExpired || statusData.daysRemaining < 0;
+    final String resolvedValidityDate = _getResolvedValidityDate(statusData);
+    final int resolvedDays = _getResolvedDaysRemaining(statusData);
+
+    final bool isExpired = _isValidityExpired || statusData.isExpired || resolvedDays < 0;
+    final int displayDays = (isExpired || resolvedDays < 0) ? 0 : resolvedDays;
+
     final cardBgColor = isExpired ? const Color(0xFFFDE8E8) : const Color(0xFFEBF3FA);
     final borderColor = isExpired ? const Color(0xFFF8B4B4) : const Color(0xFFD0E1F4);
     final primaryTextColor = isExpired ? const Color(0xFF9B1C1C) : const Color(0xFF061E36);
@@ -573,12 +740,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(width: 10),
 
-              // Days remaining
+              // Days remaining (dynamically calculated from today's date)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${statusData.daysRemaining < 0 ? 0 : statusData.daysRemaining}',
+                    '$displayDays',
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w900,
@@ -606,13 +773,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: borderColor,
               ),
 
-              // Trial period text
+              // Subscription status text
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isExpired ? 'Trial Expired' : 'Trial Period',
+                      isExpired
+                          ? 'Subscription Expired'
+                          : (displayDays <= 7 ? 'Expiring Soon' : 'Active Subscription'),
                       style: TextStyle(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w800,
@@ -621,7 +790,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      isExpired ? 'Account locked - contact us' : 'Contact us to reactivate',
+                      isExpired
+                          ? 'Account locked - contact us'
+                          : (displayDays <= 7
+                              ? 'Contact us to renew'
+                              : 'Verified and active'),
                       style: TextStyle(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w500,
@@ -655,7 +828,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(height: 8),
 
-          // Valid Until row
+          // Dynamic Validity Date / Expired Date row (from API response, not hardcoded)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
@@ -670,8 +843,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 6),
                 Text(
                   isExpired
-                      ? 'Expired On: ${statusData.validityDateStr.isNotEmpty ? statusData.validityDateStr : 'N/A'}'
-                      : 'Valid Until: ${statusData.validityDateStr.isNotEmpty ? statusData.validityDateStr : '30 - September - 2026'}',
+                      ? (resolvedValidityDate.isNotEmpty
+                          ? 'Expired On: $resolvedValidityDate'
+                          : 'Expired')
+                      : (resolvedValidityDate.isNotEmpty
+                          ? 'Valid Until: $resolvedValidityDate'
+                          : 'Active'),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -690,6 +867,13 @@ class _HomeScreenState extends State<HomeScreen> {
   // EXPIRED ALERT
   // ============================================================
   Widget _buildExpiredAlert(UserStatusData statusData) {
+    final String resolvedValidityDate = _getResolvedValidityDate(statusData);
+    final String displayMessage = _validityExpiredMessage.isNotEmpty
+        ? _validityExpiredMessage
+        : (resolvedValidityDate.isNotEmpty
+            ? 'Expired on $resolvedValidityDate. Contact support to reactivate.'
+            : 'Your access has expired—contact admin for help');
+
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -714,11 +898,26 @@ class _HomeScreenState extends State<HomeScreen> {
                   'Access Disabled - Validity Expired',
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.red),
                 ),
+                const SizedBox(height: 2),
                 Text(
-                  'Expired on ${statusData.validityDateStr}. Contact support to reactivate.',
+                  displayMessage,
                   style: TextStyle(fontSize: 11.5, color: Colors.red.shade800),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton.icon(
+            onPressed: () => _makePhoneCall('9444228585'),
+            icon: const Icon(Icons.phone_in_talk_rounded, size: 13),
+            label: const Text('Call Us', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade700,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              minimumSize: const Size(0, 32),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              elevation: 0,
             ),
           ),
         ],
@@ -730,6 +929,10 @@ class _HomeScreenState extends State<HomeScreen> {
   // DRAWER (MATCHING SCREENSHOT UIUX)
   // ============================================================
   Widget _buildDrawer(BuildContext context, UserStatusData statusData) {
+    final String resolvedValidityDate = _getResolvedValidityDate(statusData);
+    final int resolvedDays = _getResolvedDaysRemaining(statusData);
+    final bool isExpired = _isValidityExpired || statusData.isExpired || resolvedDays < 0;
+
     return Drawer(
       child: Container(
         decoration: const BoxDecoration(
@@ -752,6 +955,40 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 60,
                       fit: BoxFit.contain,
                     ),
+                    if (resolvedValidityDate.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isExpired ? const Color(0xFFFDE8E8) : const Color(0xFFEBF3FA),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isExpired ? const Color(0xFFF8B4B4) : const Color(0xFFD0E1F4),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              isExpired ? Icons.lock_clock_rounded : Icons.verified_user_rounded,
+                              size: 15,
+                              color: isExpired ? Colors.red : const Color(0xFF0A3B73),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              isExpired
+                                  ? 'Expired: $resolvedValidityDate'
+                                  : 'Valid: $resolvedValidityDate ($resolvedDays days)',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: isExpired ? Colors.red.shade900 : const Color(0xFF0A3B73),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 14),
                     const Divider(color: Color(0xFFD0E1F4), height: 1),
                   ],
@@ -880,7 +1117,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           content: const Text(
-            'Are you sure you want to log out of KMR Live?',
+            'Are you sure you want to log out of KMR LiVE?',
             style: TextStyle(fontSize: 14, color: Color(0xFF4A5568)),
           ),
           actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -1209,7 +1446,7 @@ class _HomeBannerSliderState extends State<_HomeBannerSlider> {
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: const Text(
-                          'KMR LIVE',
+                          'KMR LiVE',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w900,
@@ -1257,17 +1494,113 @@ class _HomeBannerSliderState extends State<_HomeBannerSlider> {
 // ============================================================
 // BOTTOM SOLID COLOR BAR (SHOWN WHEN VALIDITY >= 7 DAYS)
 // ============================================================
-class _BottomSolidColorBar extends StatelessWidget {
+class _BottomSolidColorBar extends StatefulWidget {
   const _BottomSolidColorBar();
 
   @override
+  State<_BottomSolidColorBar> createState() => _BottomSolidColorBarState();
+}
+
+class _BottomSolidColorBarState extends State<_BottomSolidColorBar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _waveController;
+
+  @override
+  void initState() {
+    super.initState();
+    _waveController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _waveController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 50,
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final double totalHeight = 44.0 + bottomPadding;
+
+    return SizedBox(
+      height: totalHeight,
       width: double.infinity,
-      color: const Color(0xFF0A3B73),
+      child: AnimatedBuilder(
+        animation: _waveController,
+        builder: (context, _) {
+          return CustomPaint(
+            painter: _WaveBarPainter(
+              animValue: _waveController.value,
+              bottomPadding: bottomPadding,
+            ),
+          );
+        },
+      ),
     );
   }
+}
+
+class _WaveBarPainter extends CustomPainter {
+  final double animValue;
+  final double bottomPadding;
+  const _WaveBarPainter({required this.animValue, this.bottomPadding = 0});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double waveEffectiveHeight = size.height - bottomPadding;
+
+    // Solid base underneath so the bottom gesture area is never empty or white
+    final basePaint = Paint()
+      ..color = const Color(0xFF0A3B73)
+      ..style = PaintingStyle.fill;
+    canvas.drawRect(
+      Rect.fromLTWH(0, waveEffectiveHeight * 0.65, size.width, size.height - waveEffectiveHeight * 0.65),
+      basePaint,
+    );
+
+    // Wave 1 — lighter, faster
+    final wave1Paint = Paint()
+      ..color = const Color(0xFF155799).withValues(alpha: 0.65)
+      ..style = PaintingStyle.fill;
+    final path1 = Path();
+    path1.moveTo(0, size.height);
+    for (double x = 0; x <= size.width; x++) {
+      final y = waveEffectiveHeight * 0.38 +
+          math.sin((x / size.width * 2 * math.pi) + animValue * 2 * math.pi) *
+              waveEffectiveHeight *
+              0.22;
+      path1.lineTo(x, y);
+    }
+    path1.lineTo(size.width, size.height);
+    path1.close();
+    canvas.drawPath(path1, wave1Paint);
+
+    // Wave 2 — darker, slower, offset
+    final wave2Paint = Paint()
+      ..color = const Color(0xFF0A3B73).withValues(alpha: 0.95)
+      ..style = PaintingStyle.fill;
+    final path2 = Path();
+    path2.moveTo(0, size.height);
+    for (double x = 0; x <= size.width; x++) {
+      final y = waveEffectiveHeight * 0.50 +
+          math.sin((x / size.width * 2 * math.pi) +
+                  animValue * 2 * math.pi * 0.7 +
+                  math.pi * 0.5) *
+              waveEffectiveHeight *
+              0.18;
+      path2.lineTo(x, y);
+    }
+    path2.lineTo(size.width, size.height);
+    path2.close();
+    canvas.drawPath(path2, wave2Paint);
+  }
+
+  @override
+  bool shouldRepaint(_WaveBarPainter old) =>
+      old.animValue != animValue || old.bottomPadding != bottomPadding;
 }
 
 // ============================================================
