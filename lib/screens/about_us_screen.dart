@@ -57,7 +57,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
   @override
   Widget build(BuildContext context) {
     // Dynamic or fallback values
-    final companyName = _companyData?['company_name']?.toString() ?? 'KMR Live';
+    final companyName = _companyData?['company_name']?.toString() ?? 'KMR LiVE';
     final companyEmail = _companyData?['company_email']?.toString() ?? 'info@kmrlive.in';
     final mobile1 = _companyData?['company_mobile_no']?.toString() ?? '9092346999';
     final mobile2 = _companyData?['company_mobile_no2']?.toString() ?? '9042028585';
@@ -336,7 +336,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                       child: Column(
                         children: [
                           Text(
-                            'KMR Live Mobile App',
+                            'KMR LiVE Mobile App',
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -353,7 +353,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            '© ${DateTime.now().year} KMR Live. All Rights Reserved.',
+                            '© ${DateTime.now().year} KMR LiVE. All Rights Reserved.',
                             style: TextStyle(
                               fontSize: 11,
                               color: Colors.grey.shade500,

@@ -174,19 +174,22 @@ class LiveRateItem {
     );
   }
 
-  /// Calculates the price difference string (e.g. "(-10.0)", "(+15.0)", "(0.0)")
+  /// Calculates the price difference string (e.g. "(-10)", "(+15)", "(0)")
   String get priceDifference {
     final double currentPrice = double.tryParse(vendorProductRate) ?? 0.0;
     if (stocks.isNotEmpty) {
       final double prevPrice = double.tryParse(stocks.first.rate) ?? currentPrice;
       final double diff = currentPrice - prevPrice;
+      final String valStr = (diff.truncateToDouble() == diff)
+          ? diff.abs().toInt().toString()
+          : diff.abs().toStringAsFixed(1);
       if (diff < 0) {
-        return '(${diff.toStringAsFixed(1)})';
+        return '(-$valStr)';
       } else if (diff > 0) {
-        return '(+${diff.toStringAsFixed(1)})';
+        return '(+$valStr)';
       }
     }
-    return '(0.0)';
+    return '(0)';
   }
 }
 

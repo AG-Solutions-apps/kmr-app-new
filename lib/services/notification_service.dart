@@ -161,7 +161,7 @@ class NotificationService {
   /// Trigger a test notification banner to verify notifications locally
   Future<void> sendTestNotification({
     String title = 'Test KMR Push Notification 🔔',
-    String body = 'Push notifications are working perfectly in KMR Live App!',
+    String body = 'Push notifications are working perfectly in KMR LiVE App!',
   }) async {
     await _showLocalNotification(
       id: DateTime.now().millisecondsSinceEpoch ~/ 1000,

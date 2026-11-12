@@ -20,44 +20,66 @@ class NewsDetailScreen extends StatelessWidget {
     required this.newsResponse,
   });
 
-  Future<void> _handleOpenAttachment(BuildContext context, String attachmentUrl) async {
-    final cleanUrl = attachmentUrl.trim();
-    final isImage = cleanUrl.toLowerCase().endsWith('.jpg') ||
-        cleanUrl.toLowerCase().endsWith('.jpeg') ||
-        cleanUrl.toLowerCase().endsWith('.png') ||
-        cleanUrl.toLowerCase().endsWith('.webp');
+  /// Original image preview dialog without zoom for the main news image.
+  void _showOriginalImagePreview(BuildContext context, String imageUrl) {
+    final cleanUrl = imageUrl.trim();
+    if (cleanUrl.isEmpty) return;
 
-    if (isImage) {
-      // Show Image preview dialog
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: AppCachedNetworkImage(
+                imageUrl: cleanUrl,
+                fit: BoxFit.contain,
+                errorWidget: Container(
+                  padding: const EdgeInsets.all(24),
+                  color: Colors.white,
+                  child: const Text('Failed to load image preview'),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Full-screen zoom viewer for news other attachments.
+  Future<void> _handleOpenAttachment(
+    BuildContext context,
+    String attachmentUrl, {
+    String title = 'Attachment Image',
+  }) async {
+    final cleanUrl = attachmentUrl.trim();
+    if (cleanUrl.isEmpty) return;
+
+    final lower = cleanUrl.toLowerCase();
+    final bool isPdf = lower.endsWith('.pdf') || lower.contains('.pdf');
+
+    if (!isPdf) {
+      // Show full-screen zoomable interactive image viewer
       showDialog(
         context: context,
-        builder: (context) => Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Align(
-                alignment: Alignment.centerRight,
-                child: IconButton(
-                  icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: AppCachedNetworkImage(
-                  imageUrl: cleanUrl,
-                  fit: BoxFit.contain,
-                  errorWidget: Container(
-                    padding: const EdgeInsets.all(24),
-                    color: Colors.white,
-                    child: const Text('Failed to load image preview'),
-                  ),
-                ),
-              ),
-            ],
-          ),
+        useSafeArea: false,
+        barrierDismissible: true,
+        barrierColor: Colors.black.withValues(alpha: 0.94),
+        builder: (context) => ZoomableImageViewerDialog(
+          imageUrl: cleanUrl,
+          title: title,
         ),
       );
     } else {
@@ -167,7 +189,7 @@ class NewsDetailScreen extends StatelessWidget {
           children: [
             // Dynamic Adaptive Hero Image Container (Adapts naturally to Landscape or Portrait images)
             GestureDetector(
-              onTap: () => _handleOpenAttachment(context, fullImgUrl),
+              onTap: () => _showOriginalImagePreview(context, fullImgUrl),
               child: Container(
                 width: double.infinity,
                 constraints: const BoxConstraints(
@@ -302,13 +324,21 @@ class NewsDetailScreen extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
-                        onPressed: () => _handleOpenAttachment(context, otherAttachmentUrl),
+                        onPressed: () => _handleOpenAttachment(
+                          context,
+                          otherAttachmentUrl,
+                          title: isPdf
+                              ? 'News Document (PDF)'
+                              : (newsItem.newsHeading.isNotEmpty
+                                  ? '${newsItem.newsHeading} - Attachment'
+                                  : 'Attachment Image'),
+                        ),
                         icon: Icon(
-                          isPdf ? Icons.picture_as_pdf_rounded : Icons.image_rounded,
+                          isPdf ? Icons.picture_as_pdf_rounded : Icons.zoom_in_rounded,
                           size: 20,
                         ),
                         label: Text(
-                          isPdf ? 'View Document (PDF)' : 'View Attachment Image',
+                          isPdf ? 'View Document (PDF)' : 'View & Zoom Attachment Image',
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
@@ -331,6 +361,302 @@ class NewsDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 30),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Full-screen zoomable interactive viewer dialog for news images and attachments.
+/// Supports pinch-to-zoom, pan, double-tap to zoom, and on-screen zoom control buttons.
+class ZoomableImageViewerDialog extends StatefulWidget {
+  final String imageUrl;
+  final String title;
+
+  const ZoomableImageViewerDialog({
+    super.key,
+    required this.imageUrl,
+    this.title = 'Attachment Preview',
+  });
+
+  @override
+  State<ZoomableImageViewerDialog> createState() => _ZoomableImageViewerDialogState();
+}
+
+class _ZoomableImageViewerDialogState extends State<ZoomableImageViewerDialog>
+    with SingleTickerProviderStateMixin {
+  late final TransformationController _transformationController;
+  late final AnimationController _animationController;
+  Animation<Matrix4>? _animation;
+
+  double _currentScale = 1.0;
+  TapDownDetails? _doubleTapDetails;
+
+  @override
+  void initState() {
+    super.initState();
+    _transformationController = TransformationController();
+    _transformationController.addListener(_onTransformationChanged);
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    )..addListener(() {
+        if (_animation != null) {
+          _transformationController.value = _animation!.value;
+        }
+      });
+  }
+
+  void _onTransformationChanged() {
+    final scale = _transformationController.value.getMaxScaleOnAxis();
+    if ((scale - _currentScale).abs() > 0.04) {
+      setState(() {
+        _currentScale = scale;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _transformationController.removeListener(_onTransformationChanged);
+    _transformationController.dispose();
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _animateToMatrix(Matrix4 targetMatrix) {
+    _animation = Matrix4Tween(
+      begin: _transformationController.value,
+      end: targetMatrix,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutCubic,
+    ));
+    _animationController.forward(from: 0);
+  }
+
+  void _zoomIn() {
+    final currentScale = _transformationController.value.getMaxScaleOnAxis();
+    final newScale = (currentScale + 0.6).clamp(1.0, 6.0);
+    _animateToMatrix(Matrix4.diagonal3Values(newScale, newScale, 1.0));
+  }
+
+  void _zoomOut() {
+    final currentScale = _transformationController.value.getMaxScaleOnAxis();
+    final newScale = (currentScale - 0.6).clamp(1.0, 6.0);
+    _animateToMatrix(Matrix4.diagonal3Values(newScale, newScale, 1.0));
+  }
+
+  void _resetZoom() {
+    _animateToMatrix(Matrix4.identity());
+  }
+
+  void _handleDoubleTap() {
+    final currentScale = _transformationController.value.getMaxScaleOnAxis();
+    if (currentScale > 1.2) {
+      _resetZoom();
+    } else {
+      final position = _doubleTapDetails?.localPosition ?? Offset.zero;
+      const targetScale = 2.5;
+      final x = -position.dx * (targetScale - 1);
+      final y = -position.dy * (targetScale - 1);
+      final zoomedMatrix = Matrix4.identity()
+        ..setEntry(0, 0, targetScale)
+        ..setEntry(1, 1, targetScale)
+        ..setEntry(0, 3, x)
+        ..setEntry(1, 3, y);
+      _animateToMatrix(zoomedMatrix);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black.withValues(alpha: 0.94),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            // Interactive Zoom & Pan Area
+            Positioned.fill(
+              child: GestureDetector(
+                onDoubleTapDown: (details) => _doubleTapDetails = details,
+                onDoubleTap: _handleDoubleTap,
+                child: InteractiveViewer(
+                  transformationController: _transformationController,
+                  minScale: 0.8,
+                  maxScale: 6.0,
+                  boundaryMargin: const EdgeInsets.all(120),
+                  clipBehavior: Clip.none,
+                  child: Center(
+                    child: AppCachedNetworkImage(
+                      imageUrl: widget.imageUrl,
+                      fit: BoxFit.contain,
+                      errorWidget: Container(
+                        padding: const EdgeInsets.all(28),
+                        margin: const EdgeInsets.symmetric(horizontal: 24),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E293B),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.broken_image_rounded, size: 50, color: Colors.white54),
+                            SizedBox(height: 12),
+                            Text(
+                              'Failed to load image preview',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Top Bar: Title & Close Button
+            Positioned(
+              top: 8,
+              left: 16,
+              right: 16,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.55),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+                      ),
+                      child: Text(
+                        widget.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.55),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.close_rounded, color: Colors.white, size: 24),
+                      tooltip: 'Close',
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Bottom Bar: Floating Zoom Controls
+            Positioned(
+              bottom: 24,
+              left: 20,
+              right: 20,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Subtle guide hint
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'Pinch or double-tap to zoom • Pan to explore',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  // Control Buttons Pill
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0A3B73).withValues(alpha: 0.88),
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.4),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Zoom Out Button
+                        IconButton(
+                          icon: const Icon(Icons.remove_circle_outline_rounded, color: Colors.white, size: 24),
+                          tooltip: 'Zoom Out',
+                          onPressed: _zoomOut,
+                        ),
+                        const SizedBox(width: 4),
+                        // Scale / Reset Button
+                        InkWell(
+                          onTap: _resetZoom,
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.restart_alt_rounded, color: Colors.white, size: 16),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${(_currentScale * 100).toInt()}%',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        // Zoom In Button
+                        IconButton(
+                          icon: const Icon(Icons.add_circle_outline_rounded, color: Colors.white, size: 24),
+                          tooltip: 'Zoom In',
+                          onPressed: _zoomIn,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

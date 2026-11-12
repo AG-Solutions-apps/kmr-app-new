@@ -90,10 +90,17 @@ class UserStatusService {
     }
   }
 
+  /// Update validity expiration state (called by 10s app-check-validity API)
+  void setValidityExpired(bool expired) {
+    if (statusNotifier.value.isExpired != expired) {
+      statusNotifier.value = statusNotifier.value.copyWith(isExpired: expired);
+    }
+  }
+
   /// Executes user status & validity check via API or stored session
-  Future<void> checkStatusNow() async {
+  Future<void> checkStatusNow({dynamic directUserData}) async {
     final bool loggedIn = await SessionService.isLoggedIn();
-    if (!loggedIn) {
+    if (!loggedIn && directUserData == null) {
       stopPeriodicCheck();
       return;
     }
@@ -101,10 +108,17 @@ class UserStatusService {
     statusNotifier.value = statusNotifier.value.copyWith(isChecking: true);
 
     try {
+      final savedValidity = await SessionService.getValidityDate();
+
+      // Process direct user data immediately if passed
+      if (directUserData != null) {
+        processUserData(directUserData, fallbackValidityDate: savedValidity);
+      }
+
       final mobile = await SessionService.getUserMobile();
       final password = await SessionService.getUserPassword();
       final deviceId = await SessionService.getDeviceId();
-      dynamic userData = await SessionService.getUserData();
+      dynamic userData = directUserData ?? await SessionService.getUserData();
 
       // If credentials exist, re-call appLogin API to fetch fresh user status & validity_date
       if (mobile != null && mobile.isNotEmpty && password != null && password.isNotEmpty) {
@@ -129,12 +143,17 @@ class UserStatusService {
             );
           }
         } catch (apiError) {
-          debugPrint('[UserStatusService] Network error during status refresh: $apiError. Falling back to cached session data.');
+          debugPrint('[UserStatusService] Network notice during status refresh: $apiError. Using current session data.');
         }
       }
 
       // Process and extract user object details
-      _processUserData(userData);
+      final currentSaved = await SessionService.getValidityDate() ?? savedValidity;
+      if (userData != null) {
+        processUserData(userData, fallbackValidityDate: currentSaved);
+      } else if (currentSaved != null && currentSaved.isNotEmpty && currentSaved != 'N/A') {
+        processUserData({'validity_date': currentSaved});
+      }
     } catch (e) {
       debugPrint('[UserStatusService] Error checking status: $e');
     } finally {
@@ -142,30 +161,69 @@ class UserStatusService {
     }
   }
 
-  /// Helper to extract user details from response structure
-  void _processUserData(dynamic userData) {
-    if (userData == null) return;
+  /// Deep search for validity_date in any response structure
+  static String extractValidityDate(dynamic data) {
+    final extracted = SessionService.extractValidityDate(data);
+    if (extracted.isNotEmpty && extracted != 'N/A') {
+      return extracted;
+    }
+    if (data is Map) {
+      for (final key in ['validity_date', 'validity', 'valid_until', 'expiry_date', 'expire_date']) {
+        if (data[key] != null) {
+          final val = data[key].toString().trim();
+          if (val.isNotEmpty && val != 'null' && val != 'N/A') {
+            return val;
+          }
+        }
+      }
+    }
+    return '';
+  }
 
-    Map<String, dynamic>? userMap;
+  /// Processes user data payload and dynamically calculates remaining days from today's date
+  void processUserData(dynamic userData, {String? fallbackValidityDate}) {
+    if (userData == null && (fallbackValidityDate == null || fallbackValidityDate.isEmpty)) return;
 
-    // Handle nested json payload formats:
-    // { "data": { "user": { "status": "Active", "validity_date": "2030-09-28" } } }
+    Map<String, dynamic> userMap = {};
+
     if (userData is Map) {
-      if (userData['data'] is Map && userData['data']['user'] is Map) {
-        userMap = Map<String, dynamic>.from(userData['data']['user']);
+      if (userData['data'] is Map && (userData['data'] as Map)['user'] is Map) {
+        userMap = Map<String, dynamic>.from((userData['data'] as Map)['user']);
+      } else if (userData['data'] is Map) {
+        userMap = Map<String, dynamic>.from(userData['data']);
       } else if (userData['user'] is Map) {
         userMap = Map<String, dynamic>.from(userData['user']);
-      } else if (userData['status'] != null || userData['validity_date'] != null) {
+      } else {
         userMap = Map<String, dynamic>.from(userData);
       }
     }
 
-    if (userMap == null) return;
-
     final String status = userMap['status']?.toString() ?? 'Active';
-    final String validityDateRaw = userMap['validity_date']?.toString() ?? '';
-    final String name = userMap['name']?.toString() ?? '';
-    final String mobile = userMap['mobile']?.toString() ?? '';
+    String validityDateRaw = userMap['validity_date']?.toString() ?? '';
+    if (validityDateRaw.trim().isEmpty || validityDateRaw.trim() == 'N/A') {
+      validityDateRaw = extractValidityDate(userData);
+    }
+    if (validityDateRaw.trim().isEmpty || validityDateRaw.trim() == 'N/A') {
+      validityDateRaw = SessionService.extractValidityDate(userData);
+    }
+    if ((validityDateRaw.trim().isEmpty || validityDateRaw.trim() == 'N/A') &&
+        fallbackValidityDate != null &&
+        fallbackValidityDate.trim().isNotEmpty &&
+        fallbackValidityDate.trim() != 'N/A') {
+      validityDateRaw = fallbackValidityDate.trim();
+    }
+    if (validityDateRaw.trim().isNotEmpty && validityDateRaw.trim() != 'N/A') {
+      SessionService.saveValidityDate(validityDateRaw.trim());
+    }
+
+    final String name = userMap['name']?.toString() ??
+        (userData is Map && userData['data'] is Map
+            ? (userData['data'] as Map)['name']?.toString() ?? ''
+            : '');
+    final String mobile = userMap['mobile']?.toString() ??
+        (userData is Map && userData['data'] is Map
+            ? (userData['data'] as Map)['mobile']?.toString() ?? ''
+            : '');
 
     // ============================================================
     // 1. STATUS CHECK: If status is not "Active", force automatic logout!
@@ -179,25 +237,34 @@ class UserStatusService {
     }
 
     // ============================================================
-    // 2. VALIDITY DATE CHECK: Calculate remaining days & expired state
+    // 2. DYNAMIC VALIDITY DATE CHECK: Calculate remaining days from today's date
     // ============================================================
-    final parsedValidity = _parseValidityDate(validityDateRaw);
+    if (validityDateRaw.trim().isNotEmpty && validityDateRaw.trim() != 'N/A') {
+      final parsedValidity = parseValidityDate(validityDateRaw);
 
-    statusNotifier.value = UserStatusData(
-      status: status,
-      validityDateStr: parsedValidity.dateString,
-      validityDate: parsedValidity.date,
-      daysRemaining: parsedValidity.daysRemaining,
-      isExpired: parsedValidity.isExpired,
-      isChecking: false,
-      userName: name,
-      mobile: mobile,
-    );
+      statusNotifier.value = UserStatusData(
+        status: status,
+        validityDateStr: parsedValidity.dateString,
+        validityDate: parsedValidity.date,
+        daysRemaining: parsedValidity.daysRemaining,
+        isExpired: parsedValidity.isExpired,
+        isChecking: false,
+        userName: name.isNotEmpty ? name : statusNotifier.value.userName,
+        mobile: mobile.isNotEmpty ? mobile : statusNotifier.value.mobile,
+      );
 
-    debugPrint(
-      '[UserStatusService] Status: $status | Validity: ${parsedValidity.dateString} '
-      '| Days Remaining: ${parsedValidity.daysRemaining} | Expired: ${parsedValidity.isExpired}',
-    );
+      debugPrint(
+        '[UserStatusService] Parsed validity_date: "$validityDateRaw" -> '
+        'Formatted: ${parsedValidity.dateString} | Days Remaining from today: ${parsedValidity.daysRemaining} | Expired: ${parsedValidity.isExpired}',
+      );
+    } else {
+      statusNotifier.value = statusNotifier.value.copyWith(
+        status: status,
+        userName: name.isNotEmpty ? name : statusNotifier.value.userName,
+        mobile: mobile.isNotEmpty ? mobile : statusNotifier.value.mobile,
+        isChecking: false,
+      );
+    }
   }
 
   /// Checks if status string represents "Active"
@@ -239,36 +306,69 @@ class UserStatusService {
     );
   }
 
-  /// Helper to safely parse YYYY-MM-DD or ISO validity dates
-  _ParsedValidity _parseValidityDate(String rawDateStr) {
-    if (rawDateStr.trim().isEmpty) {
-      return _ParsedValidity(dateString: 'N/A', daysRemaining: 0, isExpired: false);
+  /// Helper to safely parse YYYY-MM-DD, DD-MM-YYYY, or ISO validity dates
+  /// and dynamically compute days remaining compared to today's date
+  static _ParsedValidity parseValidityDate(String rawDateStr) {
+    if (rawDateStr.trim().isEmpty || rawDateStr.trim() == 'N/A') {
+      return _ParsedValidity(dateString: '', daysRemaining: 0, isExpired: false);
     }
 
     final cleanStr = rawDateStr.trim();
+    DateTime? parsedDate;
+
+    // 1. Try ISO8601 / YYYY-MM-DD
     try {
-      DateTime parsedDate = DateTime.parse(cleanStr);
-      final now = DateTime.now();
-      
-      // Compare calendar dates (midnight)
-      final today = DateTime(now.year, now.month, now.day);
-      final expDate = DateTime(parsedDate.year, parsedDate.month, parsedDate.day);
+      parsedDate = DateTime.parse(cleanStr);
+    } catch (_) {}
 
-      final int daysRemaining = expDate.difference(today).inDays;
-      final bool isExpired = daysRemaining < 0;
-
-      final String formattedStr = AppDateFormatter.format(cleanStr);
-
-      return _ParsedValidity(
-        dateString: formattedStr,
-        date: expDate,
-        daysRemaining: daysRemaining,
-        isExpired: isExpired,
-      );
-    } catch (e) {
-      debugPrint('[UserStatusService] Failed to parse validity date "$rawDateStr": $e');
-      return _ParsedValidity(dateString: cleanStr, daysRemaining: 0, isExpired: false);
+    // 2. Try DD-MM-YYYY or DD/MM/YYYY
+    if (parsedDate == null) {
+      final sep = cleanStr.contains('-') ? '-' : (cleanStr.contains('/') ? '/' : null);
+      if (sep != null) {
+        final parts = cleanStr.split(sep);
+        if (parts.length == 3) {
+          if (parts[2].length == 4) {
+            // DD-MM-YYYY
+            final day = int.tryParse(parts[0]) ?? 1;
+            final month = int.tryParse(parts[1]) ?? 1;
+            final year = int.tryParse(parts[2]) ?? DateTime.now().year;
+            parsedDate = DateTime(year, month, day);
+          } else if (parts[0].length == 4) {
+            // YYYY-MM-DD
+            final year = int.tryParse(parts[0]) ?? DateTime.now().year;
+            final month = int.tryParse(parts[1]) ?? 1;
+            final day = int.tryParse(parts[2]) ?? 1;
+            parsedDate = DateTime(year, month, day);
+          }
+        }
+      }
     }
+
+    if (parsedDate == null) {
+      final formatted = AppDateFormatter.format(cleanStr);
+      return _ParsedValidity(
+        dateString: formatted.isNotEmpty && formatted != 'N/A' ? formatted : cleanStr,
+        daysRemaining: 0,
+        isExpired: false,
+      );
+    }
+
+    // Dynamic difference calculation: validityDate minus today (midnight comparison)
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final expDate = DateTime(parsedDate.year, parsedDate.month, parsedDate.day);
+
+    final int daysRemaining = expDate.difference(today).inDays;
+    final bool isExpired = daysRemaining < 0;
+
+    final String formattedStr = AppDateFormatter.format(cleanStr);
+
+    return _ParsedValidity(
+      dateString: formattedStr.isNotEmpty && formattedStr != 'N/A' ? formattedStr : cleanStr,
+      date: expDate,
+      daysRemaining: daysRemaining,
+      isExpired: isExpired,
+    );
   }
 }
 

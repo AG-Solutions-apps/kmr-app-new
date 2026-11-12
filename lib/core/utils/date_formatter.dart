@@ -17,7 +17,7 @@ class AppDateFormatter {
   /// Formats any date string (YYYY-MM-DD or ISO string) to "DD - Month - YYYY"
   /// Example: "2026-10-05" -> "05 - October - 2026"
   static String format(String? rawDateStr) {
-    if (rawDateStr == null || rawDateStr.trim().isEmpty) return 'N/A';
+    if (rawDateStr == null || rawDateStr.trim().isEmpty || rawDateStr.trim() == 'N/A') return '';
     final str = rawDateStr.trim();
 
     try {

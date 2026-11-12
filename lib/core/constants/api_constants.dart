@@ -38,6 +38,7 @@ class ApiConstants {
   static const String appNews = 'app-news';
   static const String appLogout = 'app-logout';
   static const String appCategorySlider = 'app-category-slider';
+  static const String appCheckValidity = 'app-check-validity';
 
   /// Utility method to format full API endpoints safely
   static String getUrl(String endpoint) {

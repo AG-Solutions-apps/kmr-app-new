@@ -16,6 +16,80 @@ class SessionService {
   static const String _keyToken = 'kmr_token';
   static const String _keyCompanyDetails = 'kmr_company_details';
   static const String _keyLastSeenNotificationCount = 'kmr_last_seen_notif_count';
+  static const String _keyValidityDate = 'kmr_validity_date';
+
+  /// Saves validity date permanently
+  static Future<void> saveValidityDate(String date) async {
+    try {
+      if (date.trim().isEmpty || date.trim() == 'N/A') return;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_keyValidityDate, date.trim());
+    } catch (e) {
+      debugPrint('[SessionService] Error saving validity date: $e');
+    }
+  }
+
+  /// Retrieves stored validity date
+  static Future<String?> getValidityDate() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(_keyValidityDate);
+    } catch (e) {
+      debugPrint('[SessionService] Error retrieving validity date: $e');
+      return null;
+    }
+  }
+
+  /// Extracts validity_date from any JSON payload structure
+  static String extractValidityDate(dynamic data) {
+    if (data == null) return '';
+    if (data is String) {
+      try {
+        final decoded = jsonDecode(data);
+        return extractValidityDate(decoded);
+      } catch (_) {
+        if (RegExp(r'^\d{4}-\d{2}-\d{2}').hasMatch(data.trim()) ||
+            RegExp(r'^\d{2}[-/]\d{2}[-/]\d{4}').hasMatch(data.trim())) {
+          return data.trim();
+        }
+      }
+      return '';
+    }
+    if (data is Map) {
+      for (final key in [
+        'validity_date',
+        'validity',
+        'valid_until',
+        'expiry_date',
+        'expire_date',
+        'expired_date',
+        'validityDate',
+        'validitydate',
+        'valid_date',
+        'valid_to',
+        'validity_time',
+      ]) {
+        if (data[key] != null) {
+          final val = data[key].toString().trim();
+          if (val.isNotEmpty && val != 'null' && val != 'N/A') {
+            return val;
+          }
+        }
+      }
+      for (final val in data.values) {
+        if (val is Map || val is List) {
+          final res = extractValidityDate(val);
+          if (res.isNotEmpty && res != 'N/A') return res;
+        }
+      }
+    } else if (data is List) {
+      for (final item in data) {
+        final res = extractValidityDate(item);
+        if (res.isNotEmpty && res != 'N/A') return res;
+      }
+    }
+    return '';
+  }
 
   /// Saves company details permanently
   static Future<void> saveCompanyDetails(dynamic companyData) async {
@@ -101,6 +175,11 @@ class SessionService {
 
         // Auto extract token if not explicitly provided
         token ??= extractToken(userData);
+
+        final valDate = extractValidityDate(userData);
+        if (valDate.isNotEmpty) {
+          await saveValidityDate(valDate);
+        }
       }
 
       if (token != null && token.isNotEmpty) {
@@ -244,6 +323,7 @@ class SessionService {
       await prefs.remove(_keyUserPassword);
       await prefs.remove(_keyDeviceId);
       await prefs.remove(_keyToken);
+      await prefs.remove(_keyValidityDate);
       debugPrint('[SessionService] User session cleared on logout.');
     } catch (e) {
       debugPrint('[SessionService] Error clearing user session: $e');
